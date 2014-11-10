@@ -25,10 +25,8 @@ int main(int argc, char ** argv) {
 
   int server_socket;
   int response_socket;
-  int read_length;
   int status;
   
-  char buffer [256];
 
   struct addrinfo host_info;
   struct addrinfo* host_info_list;
@@ -80,21 +78,49 @@ int main(int argc, char ** argv) {
     fprintf(stderr, "ERROR ACCEPTING");
   }
 
-  memset(buffer, 0, sizeof(buffer));
+  
+  FILE* msg_stream = fdopen(response_socket, "r");
 
-  read_length = read(response_socket, buffer, 255);
+  if (msg_stream == NULL){
+    fprintf(stderr, "Error: %s\n",strerror(errno)); 
 
-  if(read_length < 0) {
-    fprintf(stderr, "ERROR READING SOCKET");
   }
 
-  if(read_length == 0){
-    fprintf(stderr, "Host Lost");
-}
+  size_t sz;
+  char* request_method =NULL;
+  char* request_URI = NULL;
+  char* http_version = NULL;
+  char * ptr = NULL;
 
-  buffer[read_length] = '\0';
+  getdelim(&request_method, &sz, ' ', msg_stream);
+  ptr = strchr(request_method, ' ');
+  *ptr = '\0';
 
-  std::cout<< "Here is the message: \n" << buffer; 
+  getdelim(&request_URI, &sz, ' ', msg_stream);
+  ptr = strchr(request_URI, ' ');
+  *ptr = '\0';
+   
+  getdelim(&http_version, &sz, '\n', msg_stream);
+  ptr = strchr(http_version, '\n');
+  *ptr = '\0';
+
+  std::cout<< "Request Type: "<< request_method << "\n"; 
+  std::cout<<"Request URI: "<< request_URI <<"\n";
+  std::cout<<"HTTP Version: "<< http_version <<"\n";
+
+  char* lineptr= NULL;
+  std::cout<<"\nRest of Message(unparsed):\n";
+  while(getline(&lineptr, &sz, msg_stream) > 0){
+    std::cout<<lineptr;
+    if(lineptr[0]=='\r' && lineptr[1]=='\n'){
+      break;
+    }
+    
+  }
+
+  
+  
+  
 
   return EXIT_SUCCESS;
 
