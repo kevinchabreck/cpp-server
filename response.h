@@ -20,7 +20,7 @@
 #include <time.h>
 #include <zlib.h>
 
-ssize_t simpleResponse(int responseSocket, char* fileName);
+ssize_t simpleResponse(int responseSocket);
 
 
 #endif

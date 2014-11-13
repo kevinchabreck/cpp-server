@@ -20,97 +20,35 @@
 #include <zlib.h>
 
 
-void sendContentLength(int length, int responseSocket){
-  char firstSegment[] = "Content-Length: ";
-  char secondSegment[] = "\r\n\r\n";
-  char buffer[65535];
- 
-  sprintf(buffer,"%d",length);
+ssize_t simpleResponse(int responseSocket){
+  //Head and HTML buffers
+  std::string header;
+  char html[8000];
+  int numBytes = 0;
 
-  send(responseSocket,firstSegment,strlen(firstSegment),MSG_CONFIRM);
-  send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-  send(responseSocket,secondSegment,strlen(secondSegment),MSG_CONFIRM);
-}
-
-
-void sendDate(int responseSocket){
-  char buffer[1000];
-  time_t ping = time(0);
-  struct tm now = *gmtime(&ping);
-  strftime(buffer,sizeof(buffer), "%a, %d %b %Y %H:%M:%S %Z \r\n", &now);
-  send(responseSocket, "Date: ", strlen("Date: "), MSG_CONFIRM);
-  send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-}
-
-
-void sendLanguage(int responseSocket){
-  char buffer[] = "Content-Language: en-us\r\n";
-  send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-}
-
-void sendEncoding(int responseSocket){
-  char buffer[] = "Content-Encoding: gzip\r\n";
-  send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-}
-
-
-void sendStatus(int responseSocket, int code){
-  char* buffer;
-
-  switch(code){
-  case 200:
-    buffer = (char*)"HTTP1.1 200 OK\r\n";
-    send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-    break;
-  default:
-    buffer =(char*) "HTTP1.1 202 Accepted\r\n";
-    send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-   
-    break; // WHAT IS THE DEFAULT CASE?
-  }
-}
-
-
-ssize_t simpleResponse(int responseSocket, char* fileName){
-  char contentType[] = "Content-Type: text/html\r\n";
-  char* html [1000];
-  int octTotal;
-
-
-  FILE* htmlFile = fopen(fileName, "r");
-  if(htmlFile == NULL){
-    char buffer[] = "HTTP1.1 404 Not Found\r\n";
-    send(responseSocket,buffer,strlen(buffer),MSG_CONFIRM);
-    return (-1);
-  }
+  //Time Struct
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
   
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+  std::string dateTime = (timeBuffer);
 
-    char* htmlLine = NULL;
-  size_t htmlSize;
 
 
-  //Get HTML Content
-  int count = 0;
-
-  while(getline(&htmlLine,&htmlSize,htmlFile) != -1){
-    html[count] = htmlLine;
-    octTotal += strlen(htmlLine);
-    count++;
-    htmlLine = NULL;
+  //File
+  FILE* html_file = fopen("in.html", "r");
+  if(html_file  == NULL){
+    //BAD REQUEST
   }
-
+    while((numBytes = fread(html,1,8000,html_file)) > 0){
+      header+="HTTP1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(numBytes) + "\r\n\r\n";
+      send(responseSocket,header.c_str(),header.length(),0);
+      send(responseSocket,html,numBytes,0);
+    }
   
-
-  //Send Response
-  sendStatus(responseSocket,202);
-  sendDate(responseSocket);
-  //  sendEncoding(responseSocket);
-  sendLanguage(responseSocket);
-  send(responseSocket, contentType,strlen(contentType), MSG_CONFIRM);
-  sendContentLength(octTotal,responseSocket);
-  
-  for(int i = 0; i < count; i++)
-    send(responseSocket,html[i],strlen(html[i]),MSG_CONFIRM);
-  return 1;
+    return 1;
 }
 
