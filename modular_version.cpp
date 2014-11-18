@@ -16,7 +16,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include "ConnObj.h"
-
+#include "response.cpp"
 
 void socket_setup(int& server_socket){
 
@@ -57,7 +57,6 @@ void socket_setup(int& server_socket){
  
 
 
-
 }
 
 void get_connections(int& server_socket, ConnObj* conn_state){
@@ -89,7 +88,7 @@ void* parse(void* conn_state_void){
   char* http_version = NULL;
   char * ptr = NULL;
   
-
+ 
 
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_method, ' ');
@@ -107,39 +106,40 @@ void* parse(void* conn_state_void){
     *ptr = '\0';
   }
 
-  Request* req = new Request(request_method, request_URI, http_version);
-
-  //  req->request_method = std::string(request_method);
-  //req->request_URI = std::string(request_URI);
-  //req->http_version = std::string(http_version);
+  Request* req = new Request(request_method, request_URI, http_version); 
+  char* lineptr = NULL;
   
-
-
-  std::cout<< "Request Type: "<< req->request_method << "\n"; 
-  std::cout<<"Request URI: "<< req->request_URI <<"\n";
-  std::cout<<"HTTP Version: "<< req->http_version <<"\n";
-  
-
-  char* lineptr= NULL;
-  std::cout<<"\nRest of Message(unparsed):\n";
-  while(getline(&lineptr, &sz, msg_stream) > 0){
-    std::cout<<lineptr;
+  while (getline(&lineptr, &sz, msg_stream) > 0){
+    
     if(lineptr[0]=='\r' && lineptr[1]=='\n'){
       break;
-    
-      
-     
     }
-   
+    ptr = strchr(lineptr, '\n');
+    *ptr = '\0';
+    ptr = strchr(lineptr, ':');
+    *ptr = '\0';
+    ptr = ptr + 2;
+    req->addHeader(lineptr, ptr);
+    
+  }
+  
+  if(req->request_method == "POST" || req->request_method == "PUT"){
+    getline(&lineptr, &sz, msg_stream);
+    req->addBody(lineptr);
+  }
+  
+  if(req->request_method =="GET"){  
+    getResponse(req, conn_state);
   }
 
+  req->printRequest();
   free(request_method);
   free(request_URI);
   free(http_version);
   free(lineptr);
   fclose(conn_state->msg_stream); 
   delete conn_state;
-  
+  delete req;
   std::cout<<"Killing this thread!\n";
   
   pthread_exit(NULL);
@@ -153,7 +153,6 @@ int main(int argc, char ** argv) {
 
  
   int server_socket;
-  int response_socket[5];
   
   int i = 0;
 
@@ -175,6 +174,7 @@ int main(int argc, char ** argv) {
     }
 
     int spawn = pthread_create(&thread_name, NULL, parse, conn_state);
+  
     pthread_detach(thread_name);
 
     if(spawn){
@@ -185,10 +185,6 @@ int main(int argc, char ** argv) {
   
   }
 
-  std::string buffer  = "<http>hello</http>";
-  send(response_socket[0], buffer.c_str(), 6,0 );
-  
-  
 
   return EXIT_SUCCESS;
 
