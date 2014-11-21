@@ -1,11 +1,10 @@
+#ifndef __CONNOBJ_H__
+#define __CONNOBJ_H__
+
 #include <cstdlib>
-#include <iostream>
-#include <cstring>
 #include <map>
 
-
 class Request{
-
  public:
   std::string request_method;
   std::string request_URI;
@@ -13,51 +12,19 @@ class Request{
   std::map<std::string, std::string> headers;
   std::string message_body;
   struct tm* request_bday;
-   
-  Request(char* r, char* u, char* h): request_method(r), request_URI(u), http_version(h){ 
 
-    time_t ping;
-    time(&ping);
-    request_bday = localtime(&ping);
-}
-  
-  void addHeader(const char* key, const char* value){
-    std::string header_type(key);
-    std::string header_value(value);
-    headers[header_type] = header_value;
-    
-  }
-
-  void addBody(const char * body){
-    message_body = std::string(body);
-  }
-  
-  
-  void printRequest(){
-
-    std::cout<< "\nRequest Type: "<< request_method << "\n"; 
-    std::cout<<"Request URI: "<< request_URI <<"\n";
-    std::cout<<"HTTP Version: "<< http_version <<"\n";
-    
-    std::cout << "\nOptional Headers:\n";
-    for(std::map<std::string, std::string>:: iterator it = headers.begin(); it != headers.end(); ++it){
-      std::cout << it->first << ": " << it->second << "\n";
-    }
-    std::cout<< "\n";
-  }
-
+  Request(char* r, char* u, char* h);
+  void addHeader(const char* key, const char* value);
+  void addBody(const char * body);
+  void printRequest();
 };
 
-
 class ConnObj{
-  
  public:
   FILE* msg_stream;
   int response_socket;
-  
-  ConnObj(){
-    msg_stream = NULL;
-  }
- 
 
+  ConnObj();
 };
+
+#endif

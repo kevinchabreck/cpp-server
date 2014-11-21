@@ -1,22 +1,7 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <cstdlib>
-#include <exception>
-#include <assert.h>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <sstream>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <string.h>
 #include <netdb.h>
-#include <cerrno>
-#include <cstring>
-#include <unistd.h>
-#include <pthread.h>
 #include "ConnObj.h"
-#include "response.cpp"
+#include "response.h"
 
 void socket_setup(int& server_socket){
 
@@ -29,9 +14,8 @@ void socket_setup(int& server_socket){
   host_info.ai_family = AF_INET;
   host_info.ai_socktype = SOCK_STREAM;
 
-
   host_info.ai_flags = AI_PASSIVE;
-  status = getaddrinfo(NULL, "8080", &host_info, &host_info_list);
+  status = getaddrinfo(NULL, "15000", &host_info, &host_info_list);
   if(status < 0){
     fprintf(stderr, "error getting host info");
   }
@@ -54,16 +38,10 @@ void socket_setup(int& server_socket){
   }
 
   freeaddrinfo(host_info_list);
- 
-
-
 }
 
 void get_connections(int& server_socket, ConnObj* conn_state){
-  
   struct sockaddr_in client_addr;
-  
-
   socklen_t client_addr_size;
   client_addr_size = sizeof(client_addr); 
   
@@ -73,29 +51,23 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   if(conn_state->response_socket < 0){
     fprintf(stderr, "ERROR ACCEPTING");
   }
-
-
 }
-
 
 void* parse(void* conn_state_void){
 
   ConnObj* conn_state = (ConnObj*)conn_state_void;
   FILE* msg_stream = conn_state->msg_stream;
   size_t sz;
-  char* request_method =NULL;
-  char* request_URI = NULL;
-  char* http_version = NULL;
+  char * request_method =NULL;
+  char * request_URI = NULL;
+  char * http_version = NULL;
   char * ptr = NULL;
   
- 
-
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
   
- 
   if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
@@ -110,7 +82,6 @@ void* parse(void* conn_state_void){
   char* lineptr = NULL;
   
   while (getline(&lineptr, &sz, msg_stream) > 0){
-    
     if(lineptr[0]=='\r' && lineptr[1]=='\n'){
       break;
     }
@@ -119,8 +90,7 @@ void* parse(void* conn_state_void){
     ptr = strchr(lineptr, ':');
     *ptr = '\0';
     ptr = ptr + 2;
-    req->addHeader(lineptr, ptr);
-    
+    req->addHeader(lineptr, ptr); 
   }
   
   if(req->request_method == "POST" || req->request_method == "PUT"){
@@ -129,7 +99,7 @@ void* parse(void* conn_state_void){
   }
   
   if(req->request_method =="GET"){  
-    getResponse(req, conn_state);
+    sendResponse(req, conn_state);
   }
 
   req->printRequest();
@@ -143,49 +113,32 @@ void* parse(void* conn_state_void){
   std::cout<<"Killing this thread!\n";
   
   pthread_exit(NULL);
-  return NULL;
-  
+  return NULL;  
 }
 
-
-
 int main(int argc, char ** argv) {
-
- 
   int server_socket;
-  
   int i = 0;
-
   socket_setup(server_socket);
 
   while(1){
-    
     ConnObj* conn_state = new ConnObj();
     pthread_t thread_name;
-
     get_connections(server_socket, conn_state);
-    
     conn_state->msg_stream = fdopen(conn_state->response_socket, "r");
-        
 
     if (conn_state->msg_stream == NULL){
       fprintf(stderr, "Error: %s\n",strerror(errno)); 
-    
     }
-
+    
     int spawn = pthread_create(&thread_name, NULL, parse, conn_state);
-  
     pthread_detach(thread_name);
 
     if(spawn){
       fprintf(stderr, "Error spawning new thread, returned: %d\n", spawn);
     }
-   
     i++;
-  
   }
 
-
   return EXIT_SUCCESS;
-
 }
