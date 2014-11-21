@@ -10,33 +10,26 @@ void socket_setup(int& server_socket){
   struct addrinfo* host_info_list;
  
   memset(&host_info, 0 , sizeof(host_info));
-
   host_info.ai_family = AF_INET;
   host_info.ai_socktype = SOCK_STREAM;
-
   host_info.ai_flags = AI_PASSIVE;
   status = getaddrinfo(NULL, "15000", &host_info, &host_info_list);
   if(status < 0){
     fprintf(stderr, "error getting host info");
   }
-   
   server_socket = socket (AF_INET, SOCK_STREAM, 0);
   if (server_socket < 0){
     fprintf(stderr, "COULD NOT OPEN SOCKET");
   }
-
   int yes = 1;
   setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-
   if (bind(server_socket, host_info_list->ai_addr, host_info_list->ai_addrlen) < 0){
     fprintf(stderr,"BINDING FAILED: %d", errno);
     std::cout<<std::strerror(errno)<<"\n";
   }
-
   if(listen(server_socket, 5)< 0){
     fprintf(stderr, "Listening Failed");
   }
-
   freeaddrinfo(host_info_list);
 }
 
@@ -44,7 +37,6 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   struct sockaddr_in client_addr;
   socklen_t client_addr_size;
   client_addr_size = sizeof(client_addr); 
-  
   std::cout<<"waiting for connection\n";
   conn_state->response_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_size);
   std::cout<<"Connection received\n";
@@ -62,22 +54,22 @@ void* parse(void* conn_state_void){
   char * request_URI = NULL;
   char * http_version = NULL;
   char * ptr = NULL;
-  
+  // get the request method
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
-  
+  // get the requested URI
   if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
   }
-   
+  // get the HTTP version from the request
   if(getdelim(&http_version, &sz, '\n', msg_stream) > 0){
     ptr = strchr(http_version, '\n');
     *ptr = '\0';
   }
-
+  // create new request
   Request* req = new Request(request_method, request_URI, http_version); 
   char* lineptr = NULL;
   
