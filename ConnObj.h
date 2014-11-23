@@ -24,6 +24,9 @@ class Request{
   void addHeader(const char* key, const char* value){
     std::string header_type(key);
     std::string header_value(value);
+    header_type = standardize(header_type);
+    header_value = standardize(header_value);
+
     headers[header_type] = header_value;
     
   }
@@ -32,6 +35,13 @@ class Request{
     message_body = std::string(body);
   }
   
+  std::string standardize(std::string str){
+    for(unsigned i = 0; i < str.length(); i++){
+      str[i] = tolower(str[i]);
+    }
+
+    return str;
+  }
   
   void printRequest(){
 
@@ -54,7 +64,7 @@ class ConnObj{
  public:
   FILE* msg_stream;
   int response_socket;
-  
+  int keep_alive;
   ConnObj(){
     msg_stream = NULL;
   }

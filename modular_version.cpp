@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <exception>
 #include <assert.h>
+#include <sys/select.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -17,6 +18,8 @@
 #include <pthread.h>
 #include "ConnObj.h"
 #include "response.cpp"
+
+//make sure to delete req and conn_state
 
 void socket_setup(int& server_socket){
 
@@ -77,10 +80,9 @@ void get_connections(int& server_socket, ConnObj* conn_state){
 
 }
 
+Request* parse(ConnObj* conn_state){
 
-void* parse(void* conn_state_void){
-
-  ConnObj* conn_state = (ConnObj*)conn_state_void;
+  //ConnObj* conn_state = (ConnObj*)conn_state_void;
   FILE* msg_stream = conn_state->msg_stream;
   size_t sz;
   char* request_method =NULL;
@@ -128,23 +130,136 @@ void* parse(void* conn_state_void){
     req->addBody(lineptr);
   }
   
-  if(req->request_method =="GET"){  
-    getResponse(req, conn_state);
-  }
 
-  req->printRequest();
+ 
   free(request_method);
   free(request_URI);
   free(http_version);
-  free(lineptr);
-  fclose(conn_state->msg_stream); 
-  delete conn_state;
-  delete req;
+  free(lineptr);  
+  return req;
+  
+}
+
+int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
+  int success;
+
+  if(request_method =="GET"){  
+    std::cout<<"This is a GET!\n";
+    getResponse(req, conn_state);
+    success = 1; 
+  }
+  
+  else if(request_method == "POST"){
+    std::cout<<"This is a POST!\n";
+    postResponse(req, conn_state);
+    success = 1; 
+  }
+
+  else if(request_method == "PUT"){
+    std::cout<<"This is a PUT!\n";
+    putResponse(req, conn_state);
+    success = 1; 
+  }
+
+else if(request_method == "HEAD"){
+    std::cout<<"This is a HEAD!\n";
+    headResponse(req, conn_state);
+    success = 1; 
+  }
+
+else if(request_method == "OPTIONS"){
+    std::cout<<"This is a OPTIONS!\n";
+    optionsResponse(req, conn_state);
+    success = 1; 
+  }
+
+else if(request_method == "DELETE"){
+    std::cout<<"This is a DELETE!\n";
+    deleteResponse(req, conn_state);
+    success = 1; 
+  }
+
+else if(request_method == "TRACE"){
+    std::cout<<"This is a TRACE!\n";
+    traceResponse(req, conn_state);
+    success = 1; 
+  }
+
+ else if(request_method == "CONNECT"){
+   std::cout<<"This is a CONNECT!\n";
+   connectResponse(req, conn_state);
+   success = 1; 
+  }
+
+ else{
+   success = 0;
+   
+ }
+
+  return success;
+
+
+}
+
+
+void* handle(void* conn_state_void){
+  ConnObj* conn_state = (ConnObj*)conn_state_void;
+  Request* req;
+  std::string persist = std::string("keep-alive");
+  
+
+  struct timeval hang_out_time;
+  int chillax = 1;
+  hang_out_time.tv_sec = chillax;
+  hang_out_time.tv_usec = 0;
+
+ 
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(conn_state->response_socket, &set);
+
+  int i = 0;
+  int available = 0;
+
+  while(i < 15){
+    
+    available = select(FD_SETSIZE, &set, NULL, NULL, &hang_out_time);
+    hang_out_time.tv_sec = chillax;
+    
+    if(available > 0){
+      req = parse(conn_state);
+      
+      if((req->headers).count("connection")){
+	if(req->headers["connection"].find(persist) == std::string::npos)
+	  chillax = 0;
+      }
+    
+      
+      else{
+	chillax = 0;
+      }
+      
+      req->printRequest();
+      
+      callFunc(req->request_method, req, conn_state);
+
+      
+     i = 0;  
+    }
+
+    else{
+      i++;
+    }
+
+  }
+
   std::cout<<"Killing this thread!\n";
   
+  fclose(conn_state->msg_stream); 
+  delete(conn_state);
   pthread_exit(NULL);
   return NULL;
-  
+
 }
 
 
@@ -173,7 +288,7 @@ int main(int argc, char ** argv) {
     
     }
 
-    int spawn = pthread_create(&thread_name, NULL, parse, conn_state);
+    int spawn = pthread_create(&thread_name, NULL, handle, conn_state);
   
     pthread_detach(thread_name);
 
