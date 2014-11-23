@@ -36,14 +36,30 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
   std::string dateTime = (timeBuffer);
 
+  req->request_URI.erase(0,1);
+
   //File
-  FILE* html_file = fopen("in.html", "r");
+  FILE* html_file = fopen(req->request_URI.c_str(), "r");
   if(html_file  == NULL){
     //BAD REQUEST
-  }
-    while((numBytes = fread(html,1,8000,html_file)) > 0){
-      header+="HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\nContent-Length: " + std::to_string(numBytes) + "\r\n\r\n";
+     header+="HTTP/1.1 404 Bad Request\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\n\r\n";
       send(conn_state->response_socket,header.c_str(),header.length(),0);
+      std::cout << "Bad Request\n";
+      FILE* html_file = fopen("badReq.html", "r");
+
+      while((numBytes = fread(html,1,8000,html_file)) > 0){
+	send(conn_state->response_socket,html,numBytes,0);
+      }
+
+      return 0;
+  }
+
+ header+="HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+      send(conn_state->response_socket,header.c_str(),header.length(),0);
+
+      std::cout <<"header sent \n";
+
+    while((numBytes = fread(html,1,8000,html_file)) > 0){
       send(conn_state->response_socket,html,numBytes,0);
     }
   
