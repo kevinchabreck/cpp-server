@@ -1,37 +1,18 @@
-#include <sys/types.h>
-#include <sys/socket.h>
-//#include <cstdlib>
-
 #include <sys/select.h>
 #include <iostream>
-#include <string>
-
-
-#include <netinet/in.h>
-#include <stdio.h>
-
 #include <netdb.h>
-
-
-//#include <unistd.h>
-//#include <pthread.h>
 #include "ConnObj.h"
-#include "response.cpp"
+#include "response.h"
 
-//make sure to delete req and conn_state
+// TODO: make sure to delete req and conn_state
 
 void socket_setup(int& server_socket){
-
   int status;
   struct addrinfo host_info;
   struct addrinfo* host_info_list;
- 
   memset(&host_info, 0 , sizeof(host_info));
-
   host_info.ai_family = AF_INET;
   host_info.ai_socktype = SOCK_STREAM;
-
-
   host_info.ai_flags = AI_PASSIVE;
   status = getaddrinfo(NULL, "8000", &host_info, &host_info_list);
   if(status < 0){
@@ -56,16 +37,10 @@ void socket_setup(int& server_socket){
   }
 
   freeaddrinfo(host_info_list);
- 
-
-
 }
 
 void get_connections(int& server_socket, ConnObj* conn_state){
-  
   struct sockaddr_in client_addr;
-  
-
   socklen_t client_addr_size;
   client_addr_size = sizeof(client_addr); 
   
@@ -75,12 +50,9 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   if(conn_state->response_socket < 0){
     fprintf(stderr, "ERROR ACCEPTING");
   }
-
 }
 
 Request* parse(ConnObj* conn_state){
-
-  //ConnObj* conn_state = (ConnObj*)conn_state_void;
   FILE* msg_stream = conn_state->msg_stream;
   size_t sz;
   char* request_method =NULL;
@@ -88,14 +60,11 @@ Request* parse(ConnObj* conn_state){
   char* http_version = NULL;
   char * ptr = NULL;
   
- 
-
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
   
- 
   if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
@@ -110,7 +79,6 @@ Request* parse(ConnObj* conn_state){
   char* lineptr = NULL;
   
   while (getline(&lineptr, &sz, msg_stream) > 0){
-    
     if(lineptr[0]=='\r' && lineptr[1]=='\n'){
       break;
     }
@@ -119,23 +87,17 @@ Request* parse(ConnObj* conn_state){
     ptr = strchr(lineptr, ':');
     *ptr = '\0';
     ptr = ptr + 2;
-    req->addHeader(lineptr, ptr);
-    
+    req->addHeader(lineptr, ptr); 
   }
-  
   if(req->request_method == "POST" || req->request_method == "PUT"){
     getline(&lineptr, &sz, msg_stream);
     req->addBody(lineptr);
   }
-  
-
- 
   free(request_method);
   free(request_URI);
   free(http_version);
   free(lineptr);  
   return req;
-  
 }
 
 int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
@@ -189,14 +151,10 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
 //    success = 1; 
 //   }
 
- else{
-   success = 0;
-   
- }
-
+  else{
+    success = 0; 
+  }
   return success;
-
-
 }
 
 
@@ -204,105 +162,72 @@ void* handle(void* conn_state_void){
   ConnObj* conn_state = (ConnObj*)conn_state_void;
   Request* req;
   std::string persist = std::string("keep-alive");
-  
-
   struct timeval hang_out_time;
-  int chillax = 1;
-  hang_out_time.tv_sec = chillax;
-  hang_out_time.tv_usec = 0;
-
- 
+  // double chillax = .2;
+  double chillax = 500000;
+  hang_out_time.tv_sec = 0;
+  hang_out_time.tv_usec = chillax;
   fd_set set;
   FD_ZERO(&set);
   FD_SET(conn_state->response_socket, &set);
-
-  int i = 0;
+  double i = 0;
   int available = 0;
 
-  while(i < 15){
-    
+  while(i < 1){
+  // while(i < 2){
+    std::cout<<"LOOPING - i = " << i <<"\n";
     available = select(FD_SETSIZE, &set, NULL, NULL, &hang_out_time);
-    hang_out_time.tv_sec = chillax;
-    
+    hang_out_time.tv_usec = chillax;
     if(available > 0){
       req = parse(conn_state);
-      
       if((req->headers).count("connection")){
-	if(req->headers["connection"].find(persist) == std::string::npos)
-	  chillax = 0;
+        if(req->headers["connection"].find(persist) == std::string::npos){
+          chillax = 0;
+        }
       }
-    
-      
       else{
-	chillax = 0;
+        chillax = 0;
       }
-      
-    
-      
       int success = callFunc(req->request_method, req, conn_state);
       if(success == 1){
-	req->printRequest();} 
+        req->printRequest();
+      } 
       else{
-	std::cout<<"Bad request";
-	//badRequest(conn_state);
+        std::cout<<"Bad request";
       }
-     i = 0;  
+      i = 0;
     }
-
     else{
-      i++;
+      i+=chillax/1000000;
     }
-
   }
-
   std::cout<<"Killing this thread!\n";
-  
   fclose(conn_state->msg_stream); 
   delete(conn_state);
   pthread_exit(NULL);
   return NULL;
-
 }
 
-
-
 int main(int argc, char ** argv) {
-
- 
   int server_socket;
-  
   int i = 0;
-
   socket_setup(server_socket);
 
   while(1){
-    
     ConnObj* conn_state = new ConnObj();
     pthread_t thread_name;
-
     get_connections(server_socket, conn_state);
-    
     conn_state->msg_stream = fdopen(conn_state->response_socket, "r");
-        
-
     if (conn_state->msg_stream == NULL){
       fprintf(stderr, "Error: %s\n",strerror(errno)); 
-    
     }
-
     int spawn = pthread_create(&thread_name, NULL, handle, conn_state);
-  
     pthread_detach(thread_name);
-
     if(spawn){
       fprintf(stderr, "Error spawning new thread, returned: %d\n", spawn);
     }
-   
     i++;
-  
   }
 
-
   return EXIT_SUCCESS;
-
 }
