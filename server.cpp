@@ -1,8 +1,17 @@
 #include <sys/select.h>
 #include <iostream>
 #include <netdb.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "ConnObj.h"
 #include "response.h"
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <pthread.h>
+
+
 
 // TODO: make sure to delete req and conn_state
 

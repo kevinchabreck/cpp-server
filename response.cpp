@@ -1,5 +1,11 @@
 #include <iostream>
 #include "response.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+ssize_t putResponse(Request* req, ConnObj* conn_state){
+  return 0;
+}
 
 ssize_t getResponse(Request* req, ConnObj* conn_state){
   //Head and HTML buffers
