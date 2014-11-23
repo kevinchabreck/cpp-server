@@ -34,7 +34,7 @@ void socket_setup(int& server_socket){
 
 
   host_info.ai_flags = AI_PASSIVE;
-  status = getaddrinfo(NULL, "8080", &host_info, &host_info_list);
+  status = getaddrinfo(NULL, "8000", &host_info, &host_info_list);
   if(status < 0){
     fprintf(stderr, "error getting host info");
   }
@@ -76,7 +76,6 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   if(conn_state->response_socket < 0){
     fprintf(stderr, "ERROR ACCEPTING");
   }
-
 
 }
 
@@ -149,47 +148,47 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
     success = 1; 
   }
   
-  else if(request_method == "POST"){
-    std::cout<<"This is a POST!\n";
-    postResponse(req, conn_state);
-    success = 1; 
-  }
+//   else if(request_method == "POST"){
+//     std::cout<<"This is a POST!\n";
+//     postResponse(req, conn_state);
+//     success = 1; 
+//   }
 
-  else if(request_method == "PUT"){
-    std::cout<<"This is a PUT!\n";
-    putResponse(req, conn_state);
-    success = 1; 
-  }
+//   else if(request_method == "PUT"){
+//     std::cout<<"This is a PUT!\n";
+//     putResponse(req, conn_state);
+//     success = 1; 
+//   }
 
-else if(request_method == "HEAD"){
-    std::cout<<"This is a HEAD!\n";
-    headResponse(req, conn_state);
-    success = 1; 
-  }
+// else if(request_method == "HEAD"){
+//     std::cout<<"This is a HEAD!\n";
+//     headResponse(req, conn_state);
+//     success = 1; 
+//   }
 
-else if(request_method == "OPTIONS"){
-    std::cout<<"This is a OPTIONS!\n";
-    optionsResponse(req, conn_state);
-    success = 1; 
-  }
+// else if(request_method == "OPTIONS"){
+//     std::cout<<"This is a OPTIONS!\n";
+//     optionsResponse(req, conn_state);
+//     success = 1; 
+//   }
 
-else if(request_method == "DELETE"){
-    std::cout<<"This is a DELETE!\n";
-    deleteResponse(req, conn_state);
-    success = 1; 
-  }
+// else if(request_method == "DELETE"){
+//     std::cout<<"This is a DELETE!\n";
+//     deleteResponse(req, conn_state);
+//     success = 1; 
+//   }
 
-else if(request_method == "TRACE"){
-    std::cout<<"This is a TRACE!\n";
-    traceResponse(req, conn_state);
-    success = 1; 
-  }
+// else if(request_method == "TRACE"){
+//     std::cout<<"This is a TRACE!\n";
+//     traceResponse(req, conn_state);
+//     success = 1; 
+//   }
 
- else if(request_method == "CONNECT"){
-   std::cout<<"This is a CONNECT!\n";
-   connectResponse(req, conn_state);
-   success = 1; 
-  }
+//  else if(request_method == "CONNECT"){
+//    std::cout<<"This is a CONNECT!\n";
+//    connectResponse(req, conn_state);
+//    success = 1; 
+//   }
 
  else{
    success = 0;
@@ -239,11 +238,15 @@ void* handle(void* conn_state_void){
 	chillax = 0;
       }
       
-      req->printRequest();
+    
       
-      callFunc(req->request_method, req, conn_state);
-
-      
+      int success = callFunc(req->request_method, req, conn_state);
+      if(success == 1){
+	req->printRequest();} 
+      else{
+	std::cout<<"Bad request";
+	//badRequest(conn_state);
+      }
      i = 0;  
     }
 

@@ -42,7 +42,26 @@ class Request{
 
     return str;
   }
+  int check_keep_alive(){
+
+     
+    if(headers.count("connection")){
+      if(headers["connection"].find("keep-alive") == std::string::npos){
+	return 0;
+      }
   
+      else{
+	std::cout<<"\nCheck works\n";
+	return 1;
+      }
+    }
+    return 0;
+
+
+  }
+
+
+
   void printRequest(){
 
     std::cout<< "\nRequest Type: "<< request_method << "\n"; 
