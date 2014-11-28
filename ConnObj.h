@@ -3,7 +3,7 @@
 
 #include <cstdlib>
 #include <map>
-
+#include <set>
 
 class Request{
 
@@ -26,10 +26,18 @@ class Request{
 
 class ConnObj{
  public:
+  std::set <std::string> userdirs;
+  std::set <std::string> getabledirs;
   FILE* msg_stream;
   int response_socket;
   int keep_alive;
   ConnObj();
+  int authorized(std::string type, std::string dir);
+  
+ private:
+  void read_privileges(char* filename, std::set<std::string>& auth);
+  
+
 };
 
 #endif
