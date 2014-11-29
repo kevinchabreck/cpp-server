@@ -3,6 +3,9 @@
 #include "ConnObj.h"
 #include <time.h>
 #include <string>
+#include <sys/socket.h>
+#include <sys/types.h>
+
 
 void optionsResponse(Request* req, ConnObj* conn_state){
   std::string header;

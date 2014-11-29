@@ -6,7 +6,7 @@ build:
 server: server.o ConnObj.o response.o head.o badRequest.o delete.o putResponse.o options.o
 	$(CC) $(FLAGS) server.o ConnObj.o response.o head.o badRequest.o delete.o putResponse.o options.o -o server -lpthread
 
-server.o: ConnObj.o response.o putResponse.o
+server.o: ConnObj.o response.o putResponse.o head.o badRequest.o delete.o options.o
 response.o: response.h ConnObj.o
 ConnObj.o: ConnObj.h
 putResponse.o: putResponse.h
