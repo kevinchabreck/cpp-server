@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include "delete.h"
 #include "head.h"
-
+#include "options.h"
 
 
 // TODO: make sure to delete req and conn_state
@@ -148,11 +148,11 @@ else if(request_method == "HEAD"){
     success = 1; 
   }
 
-// else if(request_method == "OPTIONS"){
-//     std::cout<<"This is a OPTIONS!\n";
-//     optionsResponse(req, conn_state);
-//     success = 1; 
-//   }
+ else if(request_method == "OPTIONS"){
+     std::cout<<"This is a OPTIONS!\n";
+     optionsResponse(req, conn_state);
+     success = 1; 
+   }
 
 else if(request_method == "DELETE"){
     std::cout<<"This is a DELETE!\n";
