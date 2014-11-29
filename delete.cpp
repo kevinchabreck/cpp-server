@@ -20,23 +20,49 @@
 
 void deleteResponse(Request* req, ConnObj* conn_state){
   std::string header;
-
+  std::string requestObject = req->request_URI;
   //Time Struct
   time_t ping;
   struct tm* currentTime;
   char timeBuffer[80];
   
+  //Current Time for header
   time(&ping);
   currentTime = localtime(&ping);
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
   std::string dateTime = (timeBuffer);
 
-  req->request_URI.erase(0,1);
-  std::string file = "www/" + req->request_URI;
-
-
-  header+="HTTP/" + req->http_version + "403 FORBIDDEN\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-
+  // Check to see if the directory has user permissions
+  requestObject.erase(0,1);
+  int allowed = conn_state->authorized(req->request_method, req->request_URI);
+  
+  
+  if(!allowed){
+    // Durectory does not have user permissions
+    header+="HTTP/" + req->http_version + "401 UNATHORIZED\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+    send(conn_state->response_socket,header.c_str(),header.length(),0);
+    std::cout << "\nDELETE " + requestObject + " FAILED. Permission Denied: Not Authorized!\n";
+  }
+  else{ // Directory has user permissions
+    //Does the client require 'Continue' response
+    if((req->headers).count("expect") == 1){
+      if((req->headers)["expect"].find("100-continue") != std::string::npos){
+	header+="HTTP/" + req->http_version + "100 CONTINUE\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+	  send(conn_state->response_socket,header.c_str(),header.length(),0);
+          }
+    }
+    //Try to remove the file
+    if(remove(requestObject.c_str()) == 0){ // IF == 0, File was deleted
+      header+="HTTP/" + req->http_version + "200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+      send(conn_state->response_socket,header.c_str(),header.length(),0);
+      std::cout <<"\nDELETE " + requestObject+ " SUCCESSFUL!\n";
+    }
+    else {// If it was not deleted
+      header+="HTTP/" + req->http_version + "404 NOT FOUND\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+      send(conn_state->response_socket,header.c_str(),header.length(),0);
+      std::cout <<"\nDELETE " + requestObject+ " FAILED!: File not found.\n";
+   
+    }
+  }
 }
 
