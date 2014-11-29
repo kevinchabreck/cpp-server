@@ -63,7 +63,7 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   std::string dateTime = (timeBuffer);
 
   req->request_URI.erase(0,1);
-  std::string file = "www/" + req->request_URI;
+  std::string file =  req->request_URI;
  
   /*
   if(!beenModified(currentTime, file)){
