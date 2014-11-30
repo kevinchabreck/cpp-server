@@ -1,4 +1,5 @@
 #include "connection.h"
+#include <cstdlib>
 #include <cstring>
 #include <stdio.h>
 
