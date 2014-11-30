@@ -6,6 +6,16 @@ Request::Request(char* r, char* u, char* h): request_method(r), request_URI(u), 
   time_t ping;
   time(&ping);
   request_bday = localtime(&ping);
+  if(request_URI.length() == 0){
+    request_URI = "/";
+  }
+
+  else{
+    if(request_URI[0] != '/'){
+      request_URI = "/" + request_URI;
+    }
+  }
+  
 }
 
 void Request::addHeader(const char* key, const char* value) {
@@ -87,15 +97,14 @@ void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){
 
 int ConnObj::authorized(std::string type, std::string URI){
 
-  std::string dir;
-  URI.erase(0,1); 
+  std::string dir; 
   int loc = URI.find_last_of("/");
   if(loc == std::string::npos){
     return 0;
   }
 
   else{
-    dir = URI.substr(0, loc + 1);
+    dir = "www" + URI.substr(0, loc + 1);
   }
 
   if(type == "GET" || type == "HEAD"){return getabledirs.count(dir);}

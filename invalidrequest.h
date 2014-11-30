@@ -8,6 +8,8 @@
 #include <sys/socket.h>
 #include "connection.h"
 
-void  badRequest(ConnObj* conn_state);
+void send404(ConnObj* conn_state);
+void send401(ConnObj* conn_state);
+
 
 #endif
