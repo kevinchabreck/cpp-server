@@ -1,11 +1,11 @@
-#include "badRequest.h"
+#include "invalidrequest.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include "connection.h"
 
-void  badRequest(ConnObj* conn_state){
+void send404(ConnObj* conn_state){
   //Head and HTML buffers
   std::string header;
   char html[8000];
@@ -29,3 +29,27 @@ void  badRequest(ConnObj* conn_state){
       send(conn_state->response_socket,html,numBytes,0);
     }
 }   
+
+
+void send401(ConnObj* conn_state){
+  std::string header;
+  //char html[8000];
+  //int numBytes = 0;
+
+  //Time Struct
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
+  
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+ 
+  std::string dateTime = (timeBuffer);
+
+  header+="HTTP/1.1 401 UNAUTHORIZED\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  
+
+}   
+

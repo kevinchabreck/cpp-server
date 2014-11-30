@@ -24,7 +24,8 @@
 #include <zlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include "badRequest.h"
+#include "invalidrequest.h"
+
 
 bool beenModified(struct tm* ping, std::string file){
   struct tm* clock;
@@ -47,6 +48,9 @@ bool beenModified(struct tm* ping, std::string file){
 
 
 ssize_t getResponse(Request* req, ConnObj* conn_state){
+  
+  int allowed = conn_state->authorized(req->request_method, req->request_URI);
+  
   //Head and HTML buffers
   std::string header;
   char html[8000];
@@ -62,8 +66,8 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
   std::string dateTime = (timeBuffer);
 
-  req->request_URI.erase(0,1);
-  std::string file =  req->request_URI;
+  //req->request_URI.erase(0,1);
+  std::string file = "www" + req->request_URI;
  
   /*
   if(!beenModified(currentTime, file)){
@@ -78,7 +82,7 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   FILE* html_file = fopen(file.c_str(), "r");
   if(html_file  == NULL){
     //BAD REQUEST
-    badRequest(conn_state);
+    send404(conn_state);
     return 0;
   }
 

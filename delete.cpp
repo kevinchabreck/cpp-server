@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "connection.h"
+#include "invalidrequest.h"
 
 void deleteResponse(Request* req, ConnObj* conn_state){
   std::string header;
@@ -37,11 +38,10 @@ void deleteResponse(Request* req, ConnObj* conn_state){
   
   
   if(!allowed){
-    // Durectory does not have user permissions
-    header+="HTTP/" + req->http_version + "401 UNATHORIZED\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-    send(conn_state->response_socket,header.c_str(),header.length(),0);
-    std::cout << "\nDELETE " + requestObject + " FAILED. Permission Denied: Not Authorized!\n";
-  }
+    // Durectory does not have user permission
+    send401(conn_state);
+   }
+
   else{ // Directory has user permissions
     //Does the client require 'Continue' response
     if((req->headers).count("expect") == 1){
