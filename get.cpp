@@ -22,6 +22,8 @@
 #include <time.h>
 #include <unistd.h>
 #include <zlib.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
 #include "badRequest.h"
 
 bool beenModified(struct tm* ping, std::string file){

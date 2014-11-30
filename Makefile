@@ -7,10 +7,10 @@ build:
 server: server.o connection.o get.o head.o badRequest.o delete.o put.o options.o
 	$(CC) $(FLAGS) server.o connection.o get.o head.o badRequest.o delete.o put.o options.o -o server -lpthread
 
-server.o: connection.o get.o put.o head.o badRequest.o delete.o options.o
-get.o: get.h badRequest.o
+server.o: connection.o get.o put.o head.o delete.o options.o
+get.o: get.h connection.o badRequest.o
 connection.o: connection.h
-put.o: put.h
+put.o: put.h connection.o
 head.o: head.h connection.o
 badRequest.o: badRequest.h connection.o
 delete.o: delete.h connection.o

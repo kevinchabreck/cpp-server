@@ -12,6 +12,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 #include "connection.h"
 
 void headResponse(Request* req, ConnObj* conn_state){
