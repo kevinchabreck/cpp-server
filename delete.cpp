@@ -3,9 +3,9 @@
 //Date: 11-25-2014
 //
 //Description:
-//This program is called run when a client requests a 'Delete'
-//We do not want to support this functionality for security purposes
-//The the appropiate request method response is handled by server.cpp
+//This program will first check that the request directory has user permissions
+//If so, it will try to delete the requested file
+//The correct responses are: Unathorized, OK, and Not Found
 //=========================================
 
 #include <iostream>
