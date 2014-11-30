@@ -1,10 +1,10 @@
 #include "put.h"
 #include <iostream>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>

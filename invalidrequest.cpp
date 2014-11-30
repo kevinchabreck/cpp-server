@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/socket.h>
 #include "connection.h"
 
 void send404(ConnObj* conn_state){
