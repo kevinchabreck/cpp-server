@@ -4,21 +4,20 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ConnObj.h"
-#include "response.h"
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
 #include <pthread.h>
-#include "putResponse.h"
 #include <sys/ioctl.h>
+#include "connection.h"
+#include "get.h"
+#include "put.h"
 #include "delete.h"
 #include "head.h"
 #include "options.h"
 
 
 // TODO: make sure to delete req and conn_state
-
 void socket_setup(int& server_socket){   //This method sets up and binds socket to port 8000
   int status;
   struct addrinfo host_info;    //These structs are populated by getaddrinfo function

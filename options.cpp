@@ -1,10 +1,10 @@
-#include <iostream>
 #include "options.h"
-#include "ConnObj.h"
+#include <iostream>
 #include <time.h>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include "connection.h"
 
 
 void optionsResponse(Request* req, ConnObj* conn_state){

@@ -1,15 +1,15 @@
+#include "put.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 #include <string>
-#include "ConnObj.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
-#include "putResponse.h"
 #include <string.h>
+#include "connection.h"
 
 
 void createdResponse(ConnObj* conn_state){//Msg to be called when new resource is created on behalf of user 

@@ -1,8 +1,8 @@
-#include <iostream>
 #include "badRequest.h"
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ConnObj.h"
+#include "connection.h"
 
 void  badRequest(ConnObj* conn_state){
   //Head and HTML buffers

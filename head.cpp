@@ -8,11 +8,11 @@
 //Sends simple 200 OK response to the client 
 //=========================================
 
+#include "head.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include "head.h"
-#include "ConnObj.h"
+#include "connection.h"
 
 void headResponse(Request* req, ConnObj* conn_state){
  //Head and HTML buffers

@@ -2,6 +2,7 @@
 #define __CONNOBJ_H__
 
 #include <cstdlib>
+#include <iostream>
 #include <map>
 #include <set>
 

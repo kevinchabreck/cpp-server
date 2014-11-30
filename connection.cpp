@@ -1,8 +1,6 @@
-#include <iostream>
+#include "connection.h"
 #include <cstring>
-#include "ConnObj.h"
 #include <stdio.h>
-
 
 Request::Request(char* r, char* u, char* h): request_method(r), request_URI(u), http_version(h) {
   time_t ping;
@@ -61,8 +59,6 @@ ConnObj::ConnObj() {
   
   read_privileges(file1, userdirs);
   read_privileges(file2, getabledirs);
-
-
 }
 
 void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){

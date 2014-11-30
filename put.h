@@ -3,9 +3,8 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "ConnObj.h"
 #include <sys/stat.h>
-
+#include "connection.h"
 
 void putResponse(Request* req, ConnObj* conn_state);
 

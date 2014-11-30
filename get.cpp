@@ -15,16 +15,14 @@
 //  2) If-Modified 
 //=========================================
 
-
-
+#include "get.h"
 #include <iostream>
-#include "response.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include "badRequest.h"
 #include <zlib.h>
+#include "badRequest.h"
 
 bool beenModified(struct tm* ping, std::string file){
   struct tm* clock;

@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
-#include "ConnObj.h"
+#include "connection.h"
 
 void headResponse(Request* req, ConnObj* conn_state);
 

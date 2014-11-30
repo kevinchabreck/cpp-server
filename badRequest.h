@@ -4,9 +4,9 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include "ConnObj.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "connection.h"
 
 void  badRequest(ConnObj* conn_state);
 
