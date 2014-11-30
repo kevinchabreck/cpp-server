@@ -10,11 +10,11 @@ Request::Request(char* r, char* u, char* h): request_method(r), request_URI(u), 
 }
 
 void Request::addHeader(const char* key, const char* value) {
-    std::string header_type(key);
-    std::string header_value(value);
-    header_type = standardize(header_type);
-    header_value = standardize(header_value);
-    headers[header_type] = header_value;
+  std::string header_type(key);
+  std::string header_value(value);
+  header_type = standardize(header_type);
+  header_value = standardize(header_value);
+  headers[header_type] = header_value;
 }
 
 void Request::addBody(const char * body) {
