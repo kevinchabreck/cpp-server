@@ -1,19 +1,19 @@
-#include <sys/select.h>
 #include <iostream>
+#include <cerrno>
+#include <cstdlib>
+#include <cstring>
 #include <netdb.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <cerrno>
-#include <cstdlib>
-#include <cstring>
 #include <pthread.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include "connection.h"
 #include "get.h"
 #include "put.h"
-#include "delete.h"
 #include "head.h"
+#include "delete.h"
 #include "options.h"
 
 
