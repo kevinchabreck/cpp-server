@@ -1,7 +1,7 @@
 #ifndef __RESPONSE_H__
 #define __RESPONSE_H__
 
-// #include <sys/types.h>
+#include <sys/types.h>
 // #include <sys/socket.h>
 // #include <sys/stat.h>
 #include "connection.h"
