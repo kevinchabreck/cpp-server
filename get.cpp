@@ -86,7 +86,7 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
     return 0;
   }
 
-
+  
 
   header+= "HTTP/1.1 202 ACCEPT\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
@@ -96,5 +96,12 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
     send(conn_state->response_socket,html,numBytes,0);
   }
   
+
+  int check = fclose(html_file);
+  if (check != 0){
+    fprintf(stderr, "Error closing file!\n");
+  }
+
+
   return 1;
 }

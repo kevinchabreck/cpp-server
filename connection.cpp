@@ -62,17 +62,27 @@ void Request::printRequest() {
   std::cout<< "\n";
 }
 
+
+
 ConnObj::ConnObj() {
   msg_stream = NULL;
  
   char file1[] = "privileges/userdirs.txt";
   char file2[] = "privileges/getabledirs.txt";
   
-  read_privileges(file1, userdirs);
-  read_privileges(file2, getabledirs);
+  read_privileges(file1, &userdirs);
+  read_privileges(file2, &getabledirs);
+
 }
 
-void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){
+ConnObj::~ConnObj(){
+
+  userdirs.clear();
+  getabledirs.clear();
+  
+}
+
+void ConnObj::read_privileges(char* filename, std::set<std::string>* auth){
 
  FILE* input_file;
   input_file = fopen(filename, "r");
@@ -89,11 +99,16 @@ void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){
       *ptr = '\0';
     }
     
-    auth.insert(std::string(nextline));
+    auth->insert(std::string(nextline));
   }
   
   free(nextline);
-  fclose(input_file);
+  int check = fclose(input_file);
+  
+  if (check != 0){
+    fprintf(stderr, "Error closing file!\n");
+  }
+  
 }
 
 int ConnObj::authorized(std::string type, std::string URI){
@@ -103,7 +118,7 @@ int ConnObj::authorized(std::string type, std::string URI){
   if(loc == std::string::npos){
     return 0;
   }
-
+  
   else{
     dir = "www" + URI.substr(0, loc + 1);
   }
@@ -112,5 +127,8 @@ int ConnObj::authorized(std::string type, std::string URI){
 
   else if(type == "PUT" || type == "POST" || type == "DELETE"){return userdirs.count(dir);}
 
-  else return 0;
+  else{ 
+    return 0;
+
+  }
 }

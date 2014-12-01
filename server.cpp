@@ -5,6 +5,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
@@ -199,7 +200,7 @@ void* handle(void* conn_state_void){
   int available = 0;
 
   while(i < 1){
-    std::cout<<"LOOPING - i = " << i <<"\n";
+    //  std::cout<<"LOOPING - i = " << i <<"\n";
     
     fd_set set; //These structs and the select() method determine if there is something to be read in the socket
     FD_ZERO(&set); 
@@ -234,7 +235,9 @@ void* handle(void* conn_state_void){
 	//INSERT CALL TO BAD REQUEST FuNCTION
 	i = 2;
       }
-     
+      delete req;
+      req = NULL;
+
     }
     else{
       i+=.5;
@@ -249,24 +252,27 @@ void* handle(void* conn_state_void){
 
 int main(int argc, char ** argv) {
   int server_socket;
-  int i = 0;
+  // int i = 0;
   socket_setup(server_socket); //Set up the socket
+  ConnObj* conn_state = NULL;
 
   while(1){ //This loop goes infinitely on listening for new connections
-    ConnObj* conn_state = new ConnObj();
+    conn_state = new ConnObj();
     pthread_t thread_name;
     get_connections(server_socket, conn_state);
     conn_state->msg_stream = fdopen(conn_state->response_socket, "r");
     if (conn_state->msg_stream == NULL){
       fprintf(stderr, "Error: %s\n",strerror(errno)); 
     }
+  
     int spawn = pthread_create(&thread_name, NULL, handle, conn_state); //Spawn new thread when get new connection
     pthread_detach(thread_name); //Detach from thread to enable freeing of the memory
     if(spawn){
       fprintf(stderr, "Error spawning new thread, returned: %d\n", spawn);
     }
-    i++;
+    //  i++;
   }
-
+  
+ 
   return EXIT_SUCCESS;
 }
