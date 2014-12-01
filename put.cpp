@@ -49,7 +49,8 @@ void putResponse(Request* req, ConnObj* conn_state){
   
   
   if(!allowed){  
-    std::cout<<"Folder not authorized\n";
+    std::cout<< req->request_URI << " Folder not authorized\n";
+   
     //Call function for invalid directory response
   }
 

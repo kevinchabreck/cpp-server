@@ -33,10 +33,11 @@ class ConnObj{
   int keep_alive;
 
   ConnObj();
+  ~ConnObj();
   int authorized(std::string type, std::string dir);
   
  private:
-  void read_privileges(char* filename, std::set<std::string>& auth);
+  void read_privileges(char* filename, std::set<std::string>* auth);
 };
 
 #endif
