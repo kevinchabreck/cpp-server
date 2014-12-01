@@ -92,25 +92,31 @@ Request* parse(ConnObj* conn_state){ //This function parses HTTP request, exclud
 
   Request* req = new Request(request_method, request_URI, http_version); //Create a new request object based on this information
   char* lineptr = NULL;
-  
+  char * cr = NULL;
+  char* lf = NULL;
+  char* test = NULL;
   while (getline(&lineptr, &sz, msg_stream) > 0){ //Get all the optional headers present
     std::cout<<lineptr;
-    if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // CRLF indicates end of header fields
+    if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // line with only CRLF indicates end of header fields
       break;
     }
-    ptr = strchr(lineptr, '\n');
-    *ptr = '\0';
+    
+    lf = strchr(lineptr, '\n'); //Removing carriage return/new lines in header fields
+    if(lf != NULL){
+      *lf = '\0';
+    }
+
+    cr = strchr(lineptr, '\r');
+    if(cr != NULL){
+      *cr = '\0';
+    }
+
     ptr = strchr(lineptr, ':');
     *ptr = '\0';
     ptr = ptr + 2;
     req->addHeader(lineptr, ptr); 
   }
-  //Commented this out so body parsing can happen in message handling functions
-  //  if(req->request_method == "POST" || req->request_method == "PUT"){
-  //getline(&lineptr, &sz, msg_stream);
-  // std::cout<<lineptr;
-  // req->addBody(lineptr);
-  // }
+
   free(request_method); //Free malloc'd memory
   free(request_URI);
   free(http_version);
