@@ -1,20 +1,3 @@
-//========================================
-//Programmers: Sean Murray, Kevin Chabreck, Julien Mansier
-//Date: 11-25-2014
-//File: response.cpp
-//
-//Description:
-//This program is called run when a client requests a 'Get'
-//The logic will record the current timestamp for an accurate header
-//It will then check if the file can be opened
-//If it cannot be opened then it sends a 404 Bad Request to the client with NO CONTENT
-//If it does open, it response with a 202 ACCEPT and sends the content
-//
-//Future Functionality: 
-//  1) Commpression using zlib
-//  2) If-Modified 
-//=========================================
-
 #include "get.h"
 #include <iostream>
 #include <stdio.h>
@@ -32,65 +15,141 @@ bool beenModified(struct tm* ping, std::string file){
   stat(file.c_str(), &attrib);
   clock = gmtime(&(attrib.st_mtime));
 
-  //std::cout << (long long) clock;
-  //std::cout << " ";
-  //std::cout << (long long) ping;
-  //std::cout << "\n";
-
-  //  std::cout << boost::filesystem::last_write_time(file);
-
-  if( (long long)clock - (long long)ping > 0)
+  if( (long long)clock - (long long)ping > 0){
     return false;
-  
+  }
+
   return true;
 }
 
 
-ssize_t getResponse(Request* req, ConnObj* conn_state){
-  
-  int allowed = conn_state->authorized(req->request_method, req->request_URI);
-  
+
+//Checks to see if client allows compression
+bool allowsCompression(Request* req){
+  if((req->headers).count("accept-encoding") == 1){
+    if((req->headers)["accept-encoding"].find("gzip") != std::string::npos){
+      return true;
+    }
+  }
+  return false;
+}
+
+
+void sendtoclient(Request* req, ConnObj* conn_state, const char* file){
   //Head and HTML buffers
-  std::string header;
+  std::string header = "";
   char html[8000];
   int numBytes = 0;
 
-  std::string dateTime = getTimestamp();
-
-  //req->request_URI.erase(0,1);
-  std::string file = "www" + req->request_URI;
- 
-  /*
-  if(!beenModified(currentTime, file)){
-  header+="HTTP/1.1 304 Not Modified\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-  std::cout << "\n304 Not Modified";
-  return 1;
-  } */
-
- 
-  //File
-  FILE* html_file = fopen(file.c_str(), "r");
-  if(html_file  == NULL){
-    //BAD REQUEST
-    send404(conn_state);
-    return 0;
-  }
-
-  header+= "HTTP/1.1 202 ACCEPT\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-  std::cout <<"header sent \n";
+  //Time Struct
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
   
-  while((numBytes = fread(html,1,8000,html_file)) > 0){
-    send(conn_state->response_socket,html,numBytes,0);
-  }
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+  std::string dateTime = (timeBuffer);
+
   
-
-  int check = fclose(html_file);
-  if (check != 0){
-    fprintf(stderr, "Error closing file!\n");
+  
+  if(allowsCompression(req)){
+    FILE* input = fopen(file,"rb");
+    gzFile output = gzopen("www/compressed_file","wb");
+    
+    if(!input || !output){
+      fclose(input);
+      gzclose(output);
+      goto non_compressed;
+    }
+    
+    while((numBytes = fread(html,1,sizeof(html),input)) > 0){
+      gzwrite(output,html,numBytes);
+    }
+    gzclose(output);
+    fclose(input);
+    
+    FILE* fileName = fopen("www/compressed_file" , "r");
+    if(fileName == NULL){
+      goto non_compressed;
+    }
+      
+    header+= "HTTP/1.1 202 ACCEPT\r\n";
+    header+= "Date: "+ dateTime +"\r\n";
+    header+= "Server: tinyserver.colab.duke.edu\r\n";
+    header+= "Content-Type: text/html\r\n";
+    header+= "Content-Encoding: gzip\r\n\r\n";
+    send(conn_state->response_socket,header.c_str(),header.length(),0);
+   
+    while((numBytes = fread(html,1,8000,fileName)) > 0){
+      send(conn_state->response_socket,html,numBytes,0);
+    }
+    fclose(fileName);
+    remove("www/compressed_file");
   }
+  else{
+
+  non_compressed:
+    FILE* fileName = fopen(file,"r");
+    if(fileName  == NULL){//BAD REQUEST
+      send404(conn_state);
+    }
+    else{
+      
+      header+= "HTTP/1.1 202 ACCEPT\r\n";
+      header+= "Date: "+ dateTime +"\r\n";
+      header+= "Server: tinyserver.colab.duke.edu\r\n";
+      header+= "Content-Type: text/html\r\n\r\n";
+      
+      send(conn_state->response_socket,header.c_str(),header.length(),0);
+      
+      while((numBytes = fread(html,1,8000,fileName)) > 0){
+	send(conn_state->response_socket,html,numBytes,0);
+      }
+    }
+    fclose(fileName); 
+  }
+   
+}
 
 
-  return 1;
+
+
+int isDefault(Request* req,ConnObj* conn_state){
+  if(req->request_URI == "/." || req->request_URI == "/"){
+    struct stat st;
+    int index_html = stat("www/index.html", &st);
+    int index_htm = stat("www/index.htm", &st);
+    int default_htm = stat("www/default.htm", &st);
+    int bad = 0;
+    FILE* defaultFile;
+
+    if(!index_html){
+      sendtoclient(req,conn_state,"www/index.html");
+    }
+    else if(!index_htm){
+      sendtoclient(req,conn_state,"www/index.htm");
+    }
+    else if(!default_htm){
+      sendtoclient(req,conn_state,"www/default.htm");
+    }
+    else{
+      send404(conn_state);
+      return -1;
+    }
+    return 1;
+  }
+  return 0;
+}
+
+
+
+void getResponse(Request* req, ConnObj* conn_state){
+  if(isDefault(req,conn_state) == 0){
+    std::string file = "www/" + req->request_URI;
+    sendtoclient(req,conn_state, file.c_str());
+  }
+  else {
+    //DO NOTHING, 'isDefault' function already sent file
+  }
 }
