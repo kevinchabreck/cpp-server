@@ -1,4 +1,5 @@
 #include "connection.h"
+#include <cstdlib>
 #include <cstring>
 #include <stdio.h>
 
@@ -6,14 +7,24 @@ Request::Request(char* r, char* u, char* h): request_method(r), request_URI(u), 
   time_t ping;
   time(&ping);
   request_bday = localtime(&ping);
+  if(request_URI.length() == 0){
+    request_URI = "/";
+  }
+
+  else{
+    if(request_URI[0] != '/'){
+      request_URI = "/" + request_URI;
+    }
+  }
+  
 }
 
 void Request::addHeader(const char* key, const char* value) {
-    std::string header_type(key);
-    std::string header_value(value);
-    header_type = standardize(header_type);
-    header_value = standardize(header_value);
-    headers[header_type] = header_value;
+  std::string header_type(key);
+  std::string header_value(value);
+  header_type = standardize(header_type);
+  header_value = standardize(header_value);
+  headers[header_type] = header_value;
 }
 
 void Request::addBody(const char * body) {
@@ -51,17 +62,27 @@ void Request::printRequest() {
   std::cout<< "\n";
 }
 
+
+
 ConnObj::ConnObj() {
   msg_stream = NULL;
  
   char file1[] = "privileges/userdirs.txt";
   char file2[] = "privileges/getabledirs.txt";
   
-  read_privileges(file1, userdirs);
-  read_privileges(file2, getabledirs);
+  read_privileges(file1, &userdirs);
+  read_privileges(file2, &getabledirs);
+
 }
 
-void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){
+ConnObj::~ConnObj(){
+
+  userdirs.clear();
+  getabledirs.clear();
+  
+}
+
+void ConnObj::read_privileges(char* filename, std::set<std::string>* auth){
 
  FILE* input_file;
   input_file = fopen(filename, "r");
@@ -78,29 +99,36 @@ void ConnObj::read_privileges(char* filename, std::set<std::string>& auth){
       *ptr = '\0';
     }
     
-    auth.insert(std::string(nextline));
+    auth->insert(std::string(nextline));
   }
   
   free(nextline);
-  fclose(input_file);
+  int check = fclose(input_file);
+  
+  if (check != 0){
+    fprintf(stderr, "Error closing file!\n");
+  }
+  
 }
 
 int ConnObj::authorized(std::string type, std::string URI){
 
-  std::string dir;
-  URI.erase(0,1); 
+  std::string dir; 
   int loc = URI.find_last_of("/");
   if(loc == std::string::npos){
     return 0;
   }
-
+  
   else{
-    dir = URI.substr(0, loc + 1);
+    dir = "www" + URI.substr(0, loc + 1);
   }
 
   if(type == "GET" || type == "HEAD"){return getabledirs.count(dir);}
 
   else if(type == "PUT" || type == "POST" || type == "DELETE"){return userdirs.count(dir);}
 
-  else return 0;
+  else{ 
+    return 0;
+
+  }
 }

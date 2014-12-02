@@ -1,7 +1,6 @@
 #ifndef __CONNOBJ_H__
 #define __CONNOBJ_H__
 
-#include <cstdlib>
 #include <iostream>
 #include <map>
 #include <set>
@@ -32,13 +31,13 @@ class ConnObj{
   FILE* msg_stream;
   int response_socket;
   int keep_alive;
+
   ConnObj();
+  ~ConnObj();
   int authorized(std::string type, std::string dir);
   
  private:
-  void read_privileges(char* filename, std::set<std::string>& auth);
-  
-
+  void read_privileges(char* filename, std::set<std::string>* auth);
 };
 
 #endif

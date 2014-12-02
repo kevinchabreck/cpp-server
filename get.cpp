@@ -22,7 +22,10 @@
 #include <time.h>
 #include <unistd.h>
 #include <zlib.h>
-#include "badRequest.h"
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include "invalidrequest.h"
+
 
 bool beenModified(struct tm* ping, std::string file){
   struct tm* clock;
@@ -45,6 +48,9 @@ bool beenModified(struct tm* ping, std::string file){
 
 
 ssize_t getResponse(Request* req, ConnObj* conn_state){
+  
+  int allowed = conn_state->authorized(req->request_method, req->request_URI);
+  
   //Head and HTML buffers
   std::string header;
   char html[8000];
@@ -60,8 +66,8 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
   std::string dateTime = (timeBuffer);
 
-  req->request_URI.erase(0,1);
-  std::string file =  req->request_URI;
+  //req->request_URI.erase(0,1);
+  std::string file = "www" + req->request_URI;
  
   /*
   if(!beenModified(currentTime, file)){
@@ -76,11 +82,11 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   FILE* html_file = fopen(file.c_str(), "r");
   if(html_file  == NULL){
     //BAD REQUEST
-    badRequest(conn_state);
+    send404(conn_state);
     return 0;
   }
 
-
+  
 
   header+= "HTTP/1.1 202 ACCEPT\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
@@ -90,5 +96,12 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
     send(conn_state->response_socket,html,numBytes,0);
   }
   
+
+  int check = fclose(html_file);
+  if (check != 0){
+    fprintf(stderr, "Error closing file!\n");
+  }
+
+
   return 1;
 }

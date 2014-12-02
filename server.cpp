@@ -1,19 +1,20 @@
-#include <sys/select.h>
 #include <iostream>
-#include <netdb.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <cerrno>
 #include <cstdlib>
 #include <cstring>
+#include <netdb.h>
+#include <string.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <pthread.h>
 #include <sys/ioctl.h>
+#include <sys/select.h>
 #include "connection.h"
 #include "get.h"
 #include "put.h"
-#include "delete.h"
 #include "head.h"
+#include "delete.h"
 #include "options.h"
 
 
@@ -92,25 +93,31 @@ Request* parse(ConnObj* conn_state){ //This function parses HTTP request, exclud
 
   Request* req = new Request(request_method, request_URI, http_version); //Create a new request object based on this information
   char* lineptr = NULL;
-  
+  char * cr = NULL;
+  char* lf = NULL;
+  char* test = NULL;
   while (getline(&lineptr, &sz, msg_stream) > 0){ //Get all the optional headers present
     std::cout<<lineptr;
-    if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // CRLF indicates end of header fields
+    if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // line with only CRLF indicates end of header fields
       break;
     }
-    ptr = strchr(lineptr, '\n');
-    *ptr = '\0';
+    
+    lf = strchr(lineptr, '\n'); //Removing carriage return/new lines in header fields
+    if(lf != NULL){
+      *lf = '\0';
+    }
+
+    cr = strchr(lineptr, '\r');
+    if(cr != NULL){
+      *cr = '\0';
+    }
+
     ptr = strchr(lineptr, ':');
     *ptr = '\0';
     ptr = ptr + 2;
     req->addHeader(lineptr, ptr); 
   }
-  //Commented this out so body parsing can happen in message handling functions
-  //  if(req->request_method == "POST" || req->request_method == "PUT"){
-  //getline(&lineptr, &sz, msg_stream);
-  // std::cout<<lineptr;
-  // req->addBody(lineptr);
-  // }
+
   free(request_method); //Free malloc'd memory
   free(request_URI);
   free(http_version);
@@ -193,7 +200,7 @@ void* handle(void* conn_state_void){
   int available = 0;
 
   while(i < 1){
-    std::cout<<"LOOPING - i = " << i <<"\n";
+    //  std::cout<<"LOOPING - i = " << i <<"\n";
     
     fd_set set; //These structs and the select() method determine if there is something to be read in the socket
     FD_ZERO(&set); 
@@ -228,7 +235,9 @@ void* handle(void* conn_state_void){
 	//INSERT CALL TO BAD REQUEST FuNCTION
 	i = 2;
       }
-     
+      delete req;
+      req = NULL;
+
     }
     else{
       i+=.5;
@@ -243,24 +252,27 @@ void* handle(void* conn_state_void){
 
 int main(int argc, char ** argv) {
   int server_socket;
-  int i = 0;
+  // int i = 0;
   socket_setup(server_socket); //Set up the socket
+  ConnObj* conn_state = NULL;
 
   while(1){ //This loop goes infinitely on listening for new connections
-    ConnObj* conn_state = new ConnObj();
+    conn_state = new ConnObj();
     pthread_t thread_name;
     get_connections(server_socket, conn_state);
     conn_state->msg_stream = fdopen(conn_state->response_socket, "r");
     if (conn_state->msg_stream == NULL){
       fprintf(stderr, "Error: %s\n",strerror(errno)); 
     }
+  
     int spawn = pthread_create(&thread_name, NULL, handle, conn_state); //Spawn new thread when get new connection
     pthread_detach(thread_name); //Detach from thread to enable freeing of the memory
     if(spawn){
       fprintf(stderr, "Error spawning new thread, returned: %d\n", spawn);
     }
-    i++;
+    //  i++;
   }
-
+  
+ 
   return EXIT_SUCCESS;
 }

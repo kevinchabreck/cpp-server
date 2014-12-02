@@ -1,7 +1,7 @@
 #include "options.h"
 #include <iostream>
-#include <time.h>
 #include <string>
+#include <time.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include "connection.h"

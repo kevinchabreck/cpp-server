@@ -1,10 +1,10 @@
 #include "put.h"
 #include <iostream>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <string>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -35,21 +35,22 @@ void cont_response(ConnObj* conn_state){ //Msg to acknowledge client can send re
 
 void putResponse(Request* req, ConnObj* conn_state){
   
-  std::string requested_obj = req->request_URI;
+  std::string requested_obj = "www" + req->request_URI;
   std::string filename;
   std::string dir;
-  std:: size_t loc;
+  std::size_t loc;
   
 
   //Check if folder is authorized for PUTs
   int allowed = conn_state->authorized(req->request_method, req->request_URI);
   
   //ERASE opening slash
-  requested_obj.erase(0,1); 
+  // requested_obj.erase(0,1); 
   
   
   if(!allowed){  
-    std::cout<<"Folder not authorized\n";
+    std::cout<< req->request_URI << " Folder not authorized\n";
+   
     //Call function for invalid directory response
   }
 
