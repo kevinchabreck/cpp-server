@@ -12,11 +12,35 @@ void send100(ConnObj* conn_state){
   send(conn_state->response_socket,header.c_str(),header.length(),0);
 }
 
+void send201(ConnObj* conn_state){//Msg to be called when new resource is created on behalf of user 
+  std::string header;
+  header+= "HTTP/1.1 201 Created\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);   
+}
+
 // status code for a "no content" response
 void send204(ConnObj* conn_state){
   std::string header;
   header+= "HTTP/1.1 204 No Content\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0); 
+}
+
+void send400(ConnObj* conn_state){
+  std::string header;
+
+  //Time Struct
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
+  
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+ 
+  std::string dateTime = (timeBuffer);
+
+  header+="HTTP/1.1 400 Bad Request\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
 }
 
 void send401(ConnObj* conn_state){
@@ -36,6 +60,27 @@ void send401(ConnObj* conn_state){
   header+="HTTP/1.1 401 UNAUTHORIZED\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
 }
+
+
+
+void send403(ConnObj* conn_state){
+  std::string header;
+ 
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
+  
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+ 
+  std::string dateTime = (timeBuffer);
+
+  header+="HTTP/1.1 403 Forbidden\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  
+
+}   
 
 void send404(ConnObj* conn_state){
   //Head and HTML buffers
@@ -62,10 +107,30 @@ void send404(ConnObj* conn_state){
     }
 }
 
+
+void send411(ConnObj* conn_state){
+  std::string header;
+ 
+  time_t ping;
+  struct tm* currentTime;
+  char timeBuffer[80];
+  
+  time(&ping);
+  currentTime = localtime(&ping);
+  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+ 
+  std::string dateTime = (timeBuffer);
+
+  header+="HTTP/1.1 411 Length Required\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  
+}   
+
+
 // status code for an internal server error
 void send500(ConnObj* conn_state){
   std::string header;
-  header+= "HTTP/1.1 500 Interal Server Error\r\n\r\n";
+  header+= "HTTP/1.1 500 Internal Server Error\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0); 
 }
 
