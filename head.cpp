@@ -1,25 +1,19 @@
-//========================================
-//Programmers: Sean Murray, Kevin Chabreck, Julien Mansier
-//Date: 11-25-2014
-//File: head.cpp
-//
-//Description:
-//First collects current timestamp
-//Sends simple 200 OK response to the client 
-//=========================================
-
 #include "head.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "connection.h"
+#include "common.h"
+#include "get.h"
+
 
 void headResponse(Request* req, ConnObj* conn_state){
- //Head and HTML buffers
+  //Head and HTML buffers
   std::string header;
-  char html[8000];
-  int numBytes = 0;
+  
 
   //Time Struct
   time_t ping;
@@ -29,10 +23,35 @@ void headResponse(Request* req, ConnObj* conn_state){
   time(&ping);
   currentTime = localtime(&ping);
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+ 
   std::string dateTime = (timeBuffer);
 
-  
-  header+="HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
 
-}
+
+  struct stat st;
+  std::string requestObject = "www" + req->request_URI;
+  int fileStatus = stat(requestObject.c_str(),&st);
+ 
+
+  // DOES THE FILE EXIST?
+  if(fileStatus == 0){
+    if(allowsCompression(req)){  // COMPRESSION IS REQUESTED
+	header+= "HTTP/1.1 202 ACCEPT\r\n";
+	header+= "Date: "+ dateTime +"\r\n";
+	header+= "Server: tinyserver.colab.duke.edu\r\n";
+	header+= "Content-Type: text/html\r\n";
+	header+= "Content-Encoding: gzip\r\n\r\n";
+	send(conn_state->response_socket,header.c_str(),header.length(),0);
+      }
+      else {	      // COMPRESSION IS NOT REQUESTED
+	header+= "HTTP/1.1 202 ACCEPT\r\n";
+	header+= "Date: "+ dateTime +"\r\n";
+	header+= "Server: tinyserver.colab.duke.edu\r\n";
+	header+= "Content-Type: text/html\r\n";
+	send(conn_state->response_socket,header.c_str(),header.length(),0);
+      }
+      }
+    else{ // REQUESTED URI DOES NOT EXIST
+      send400(conn_state);
+    }
+  }
