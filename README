@@ -1,0 +1,123 @@
+Questions:
+Is HEAD checking authorizations?
+Is GET checking authorization?
+Is GET changing empty URI to in.html?
+
+
+In this README will describe the structure of the implemented server, 
+the layout of the source files, and give a procedure for testing.
+
+-----------------Program Structure-------------------------------
+
+The basic structure of the program is as follows:
+
+The "main" method sets up a server socket, binds it to port ####,
+and blocks while waiting for a connection. When a client connects
+to the port, it creates a separate socket file descriptor for that
+connection. We place this new socket in an object.
+
+After the object is set up, a new thread is spawned and passed 
+the objection containing connection state. The original thread
+returns to block again, listening for incoming connections.
+
+The newly spawned thread enters a function "handle" which
+controls the flow of that connection. It calls a parsing method,
+which creates a "Request" object containing information about
+the request. If the request is a valid type, the proper action
+is taken by calling one of a number of response functions.
+
+Depending on the type of action that is requested, permissions
+are checked to determine if files in the specified directory
+are publicly available to view, delete, modify, etc.
+
+If the permission is ok for the specified URI, then the action
+is performed, an appropriate response is sent, and control
+passed back to the "handle" function, where the original request
+object is deleted. If the client had asked for a persistent 
+connection, it will wait two seconds for additional requests. If
+another request from the same client is received, it will service
+it in the same manner, and reset the timer. If nothing is received
+for two seconds, or if a persistent connection was not requested, 
+it will delete the connection state object, and kill the thread.
+
+The original listening socket continues listening indefinitely, 
+until the user force quits. 
+
+
+-----------Testing Instructions--------------------------------
+
+0) Log on to the VM by SSHing using following address/pw:
+   
+   address: drew@tinyserver.colab.duke.edu
+   pw: password   
+
+1) Compiling the server:
+   
+   Navigate to the directory <INSERT DIR HERE> and type "make"
+
+2) Running the program:
+
+   Type ./server
+
+3) Testing GET
+
+   Open up a browser on your local machine.
+   Navigate to the following URL: tinyserver.colab.duke.edu
+   A very simple webpage should pop up that contains a link.
+   Click the link, and it should go to another page containing
+   a picture, and a link back to the original page.
+
+   Navigate to the following URL: tinyserver.colab.duke.edu/sldkgjs.html
+   You should get a 404 Bad Request response.
+
+   Navigate to the following URL: tinyserver.colab.duke.edu/public_access/basic.html
+   You should get a basic web page response
+   
+   Navigate to the following URL: tinyserver.colab.duke.edu/private/private.html
+   You should get a 403 Forbidden response
+   
+4) Testing HEAD
+   
+   Open up a local terminal.
+
+   Type "curl tinyserver.colab.duke.edu" curl should display the returnd HTML file
+
+   Type "curl --head tinyserver.colab.duke.edu" curl should display only meta
+   information about the file.
+
+   Type "curl --head tinyserver.colab.duke.edu/wlkegj curl should display appropriate
+   404 bad request error msg.
+
+
+5) Testing PUT
+
+   Open up a local terminal. 
+   
+   Type "curl --upload-file <any_local_file.ext> tinyserver.colab.duke.edu/user_folder/<filename.ext>"
+   
+   where <any_local_file.ext> is any local file you'd like to upload to the VM, and <filename.ext> 
+   is what you'd like it to be called. The file should be uploaded to user_folder/
+
+   Type "curl --upload-file <any_local_file.ext> tinyserver.colab.duke.edu/private/<filename.ext>"
+   
+   The PUT request will be denied.
+
+5) Testing DELETE
+
+   Open up a local terminal. 
+   
+   Type "curl -X DELETE tinyserver.colab.duke.edu/user_folder/<filename.ext>"
+   where <filename.ext> is the filename you specified in the above PUT. It should be removed
+   
+   Type "curl -X DELETE tinyserver.colab.duke.edu/private/<filename.ext>"
+   Should get 403 Forbidden response
+   
+6) Testing POST
+
+   Kevin please provide
+
+7) Testing OPTIONS
+
+   Julien please provide
+
+    
