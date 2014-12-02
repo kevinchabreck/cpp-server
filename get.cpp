@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
-#include <zlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include "common.h"
@@ -51,65 +50,24 @@ void sendtoclient(Request* req, ConnObj* conn_state, const char* file){
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
   std::string dateTime = (timeBuffer);
 
-  
-  
-  if(allowsCompression(req)){
-    FILE* input = fopen(file,"rb");
-    gzFile output = gzopen("www/compressed_file","wb");
-    
-    if(!input || !output){
-      fclose(input);
-      gzclose(output);
-      goto non_compressed;
-    }
-    
-    while((numBytes = fread(html,1,sizeof(html),input)) > 0){
-      gzwrite(output,html,numBytes);
-    }
-    gzclose(output);
-    fclose(input);
-    
-    FILE* fileName = fopen("www/compressed_file" , "r");
-    if(fileName == NULL){
-      goto non_compressed;
-    }
+   FILE* fileName = fopen(file,"r");
+   if(fileName  == NULL){//BAD REQUEST
+     send404(conn_state);
+   }
+   else{
       
-    header+= "HTTP/1.1 202 ACCEPT\r\n";
-    header+= "Date: "+ dateTime +"\r\n";
-    header+= "Server: tinyserver.colab.duke.edu\r\n";
-    header+= "Content-Type: text/html\r\n";
-    header+= "Content-Encoding: gzip\r\n\r\n";
-    send(conn_state->response_socket,header.c_str(),header.length(),0);
-   
-    while((numBytes = fread(html,1,8000,fileName)) > 0){
-      send(conn_state->response_socket,html,numBytes,0);
-    }
-    fclose(fileName);
-    remove("www/compressed_file");
-  }
-  else{
-
-  non_compressed:
-    FILE* fileName = fopen(file,"r");
-    if(fileName  == NULL){//BAD REQUEST
-      send404(conn_state);
-    }
-    else{
+     header+= "HTTP/1.1 202 ACCEPT\r\n";
+     header+= "Date: "+ dateTime +"\r\n";
+     header+= "Server: tinyserver.colab.duke.edu\r\n";
+     header+= "Content-Type: text/html\r\n\r\n";
       
-      header+= "HTTP/1.1 202 ACCEPT\r\n";
-      header+= "Date: "+ dateTime +"\r\n";
-      header+= "Server: tinyserver.colab.duke.edu\r\n";
-      header+= "Content-Type: text/html\r\n\r\n";
+     send(conn_state->response_socket,header.c_str(),header.length(),0);
       
-      send(conn_state->response_socket,header.c_str(),header.length(),0);
-      
-      while((numBytes = fread(html,1,8000,fileName)) > 0){
-	send(conn_state->response_socket,html,numBytes,0);
-      }
-    }
-    fclose(fileName); 
-  }
-   
+     while((numBytes = fread(html,1,8000,fileName)) > 0){
+       send(conn_state->response_socket,html,numBytes,0);
+     }
+   }
+   fclose(fileName); 
 }
 
 
