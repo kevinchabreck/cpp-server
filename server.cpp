@@ -16,6 +16,7 @@
 #include "head.h"
 #include "delete.h"
 #include "options.h"
+#include "post.h"
 
 
 // TODO: make sure to delete req and conn_state
@@ -136,11 +137,11 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
     success = 1; 
   }
   
-//   else if(request_method == "POST"){
-//     std::cout<<"This is a POST!\n";
-//     postResponse(req, conn_state);
-//     success = 1; 
-//   }
+  else if(request_method == "POST"){
+    std::cout<<"This is a POST!\n";
+    postResponse(req, conn_state);
+    success = 1; 
+  }
 
   else if(request_method == "PUT"){
     std::cout<<"This is a PUT!\n";

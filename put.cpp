@@ -9,56 +9,35 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <string.h>
-#include "connection.h"
-
+#include "common.h"
 
 void createdResponse(ConnObj* conn_state){//Msg to be called when new resource is created on behalf of user 
   std::string header;
   header+= "HTTP/1.1 201 Created\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-    
-}
-
-void nocontentResponse(ConnObj* conn_state){//Msg to be called when resource is modified on behalf of user
-  std::string header;
-  header+= "HTTP/1.1 204 No Content\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-  
-}
-
-void cont_response(ConnObj* conn_state){ //Msg to acknowledge client can send rest of msg body
-  std::string header;
-  header+="HTTP/1.1 100 Continue\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);
-  
+  send(conn_state->response_socket,header.c_str(),header.length(),0);   
 }
 
 void putResponse(Request* req, ConnObj* conn_state){
-  
   std::string requested_obj = "www" + req->request_URI;
   std::string filename;
   std::string dir;
   std::size_t loc;
-  
-
   //Check if folder is authorized for PUTs
   int allowed = conn_state->authorized(req->request_method, req->request_URI);
   
   //ERASE opening slash
   // requested_obj.erase(0,1); 
   
-  
   if(!allowed){  
-    std::cout<< req->request_URI << " Folder not authorized\n";
-   
-    //Call function for invalid directory response
+    std::cout<< req->request_URI << " Folder not authorized\n"; 
+    //TODO: Call function for invalid directory response
   }
 
-  //If function needs a continue response, send it
   else{
+    //If function needs a continue response, send it
     if((req->headers).count("expect") == 1){
       if((req->headers)["expect"].find("100-continue") != std::string::npos){
-	cont_response(conn_state);
+        send100(conn_state);
       }
     }
     
@@ -66,7 +45,6 @@ void putResponse(Request* req, ConnObj* conn_state){
     struct stat st;
     int exists = stat(requested_obj.c_str(), &st);
 
-    
     std::cout<<"Folder is authorized\n";
     
     //Open file to write into
@@ -107,7 +85,7 @@ void putResponse(Request* req, ConnObj* conn_state){
     }
     else{
       std::cout<<"Modified!\n";
-      nocontentResponse(conn_state);
+      send204(conn_state);
     }
 
   }

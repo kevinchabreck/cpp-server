@@ -16,7 +16,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "connection.h"
-#include "invalidrequest.h"
+#include "common.h"
 
 void deleteResponse(Request* req, ConnObj* conn_state){
   std::string header;
@@ -38,7 +38,7 @@ void deleteResponse(Request* req, ConnObj* conn_state){
   
   
   if(!allowed){
-    // Durectory does not have user permission
+    // Directory does not have user permission
     send401(conn_state);
    }
 
