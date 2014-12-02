@@ -5,6 +5,6 @@
 #include "connection.h"
 
 bool beenModified(struct tm* ping, std::string file);
-ssize_t getResponse(Request* req, ConnObj* conn_state);
+void  getResponse(Request* req, ConnObj* conn_state);
 
 #endif
