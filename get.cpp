@@ -24,8 +24,7 @@
 #include <zlib.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include "invalidrequest.h"
-
+#include "common.h"
 
 bool beenModified(struct tm* ping, std::string file){
   struct tm* clock;
@@ -56,15 +55,7 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
   char html[8000];
   int numBytes = 0;
 
-  //Time Struct
-  time_t ping;
-  struct tm* currentTime;
-  char timeBuffer[80];
-  
-  time(&ping);
-  currentTime = localtime(&ping);
-  strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
-  std::string dateTime = (timeBuffer);
+  std::string dateTime = getTimestamp();
 
   //req->request_URI.erase(0,1);
   std::string file = "www" + req->request_URI;
@@ -85,8 +76,6 @@ ssize_t getResponse(Request* req, ConnObj* conn_state){
     send404(conn_state);
     return 0;
   }
-
-  
 
   header+= "HTTP/1.1 202 ACCEPT\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
