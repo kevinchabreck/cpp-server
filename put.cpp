@@ -11,11 +11,6 @@
 #include <string.h>
 #include "common.h"
 
-void createdResponse(ConnObj* conn_state){//Msg to be called when new resource is created on behalf of user 
-  std::string header;
-  header+= "HTTP/1.1 201 Created\r\n\r\n";
-  send(conn_state->response_socket,header.c_str(),header.length(),0);   
-}
 
 void putResponse(Request* req, ConnObj* conn_state){
   std::string requested_obj = "www" + req->request_URI;
@@ -29,8 +24,8 @@ void putResponse(Request* req, ConnObj* conn_state){
   // requested_obj.erase(0,1); 
   
   if(!allowed){  
-    std::cout<< req->request_URI << " Folder not authorized\n"; 
-    //TODO: Call function for invalid directory response
+    std::cout << " Folder not authorized\n"; 
+    send403(conn_state);
   }
 
   else{
@@ -56,6 +51,11 @@ void putResponse(Request* req, ConnObj* conn_state){
     //Figue out how long body will be
     long int n = 0;
     char buffer[8000];
+    if((req->headers).count("content-length") == 0){
+      send411(conn_state);
+      return;
+    }
+
     std::string size = req->headers["content-length"];
     std::cout << "Content length expected: "<< size << "\n";
     
@@ -81,7 +81,7 @@ void putResponse(Request* req, ConnObj* conn_state){
     //Call appropriate response msg
     if(exists != 0){
       std::cout<<"Created!\n";
-      createdResponse(conn_state);
+      send201(conn_state);
     }
     else{
       std::cout<<"Modified!\n";

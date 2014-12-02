@@ -17,9 +17,8 @@
 #include "delete.h"
 #include "options.h"
 #include "post.h"
+#include "common.h"
 
-
-// TODO: make sure to delete req and conn_state
 void socket_setup(int& server_socket){   //This method sets up and binds socket to port 8000
   int status;
   struct addrinfo host_info;    //These structs are populated by getaddrinfo function
@@ -233,8 +232,9 @@ void* handle(void* conn_state_void){
       } 
       else{
         std::cout<<"Bad request";
-	//INSERT CALL TO BAD REQUEST FuNCTION
-	i = 2;
+	send400(conn_state);
+	delete req;
+	break;
       }
       delete req;
       req = NULL;

@@ -5,9 +5,13 @@
 
 // status codes
 void send100(ConnObj* conn_state);
+void send201(ConnObj* conn_state);
 void send204(ConnObj* conn_state);
+void send400(ConnObj* conn_state);
 void send401(ConnObj* conn_state);
+void send403(ConnObj* conn_state);
 void send404(ConnObj* conn_state);
+void send411(ConnObj* conn_state);
 void send500(ConnObj* conn_state);
 // helper methods
 std::string getTimestamp();
