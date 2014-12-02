@@ -5,7 +5,7 @@ build:
 	make server
 
 server: server.o connection.o get.o head.o invalidrequest.o delete.o put.o options.o
-	$(CC) $(FLAGS) server.o connection.o get.o head.o invalidrequest.o delete.o put.o options.o -o server -lpthread
+	$(CC) $(FLAGS) server.o connection.o get.o head.o invalidrequest.o delete.o put.o options.o -o server -lpthread -lz
 
 server.o: connection.o get.o put.o head.o delete.o options.o
 get.o: get.h connection.o invalidrequest.o
