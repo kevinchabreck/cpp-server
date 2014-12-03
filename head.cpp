@@ -27,7 +27,12 @@ std::string get_relpath(std::string URI){
   free(absolute_path);
   std::string rel_path = requestObject.substr(requestObject.rfind("www"), std::string::npos);
   //std::cout <<rel_path << "\n";
-  if(rel_path == "www"){
+  
+  struct stat st;
+
+  stat(rel_path.c_str(), &st);
+
+  if(S_ISDIR(st.st_mode)){
     rel_path += "/index.html";
   }
   

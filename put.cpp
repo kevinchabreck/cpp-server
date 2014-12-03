@@ -21,15 +21,16 @@ void putResponse(Request* req, ConnObj* conn_state){
   
   std::string path = req->request_URI;
   int loc = path.find_last_of("/");
-  std::string rel_path = get_relpath(path.substr(0, loc + 1)) + "/";
+  std::string rel_path = get_relpath(path.substr(0, loc + 1)) + path.substr(loc, std::string::npos);
   
-    //  std::cout<< rel_path.substr(3, std::string::npos) << " ALLOWED??";
-    int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
+  //std::cout<< rel_path.substr(3, std::string::npos) << " ALLOWED??";
+  int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
   
   //ERASE opening slash
   // requested_obj.erase(0,1); 
   
   if(!allowed){  
+    std::cout<<"Tried to access: " << rel_path <<"\n";
     std::cout << " Folder not authorized\n"; 
     send403(conn_state);
   }
@@ -45,7 +46,13 @@ void putResponse(Request* req, ConnObj* conn_state){
     //Check if file exists already
     struct stat st;
     int exists = stat(requested_obj.c_str(), &st);
-
+    if(exists == 0){
+      if(S_ISDIR(st.st_mode)){
+	send403(conn_state);
+	return;
+      }
+    }
+    
     std::cout<<"Folder is authorized\n";
     
     //Open file to write into
