@@ -12,7 +12,8 @@ void send100(ConnObj* conn_state){
   send(conn_state->response_socket,header.c_str(),header.length(),0);
 }
 
-void send201(ConnObj* conn_state){//Msg to be called when new resource is created on behalf of user 
+//Msg to be called when new resource is created on behalf of user
+void send201(ConnObj* conn_state){
   std::string header;
   header+= "HTTP/1.1 201 Created\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);   
@@ -147,14 +148,11 @@ void sendHTML(ConnObj* conn_state, std::string status){
     while((numBytes = fread(html,1,8000,html_file)) > 0){
       send(conn_state->response_socket,html,numBytes,0);
     }
-    
     int check = fclose(html_file);
     if(check != 0){
       fprintf(stderr, "Error closing file!\n");
     }
   }
-  
-
 }
 
 
@@ -165,7 +163,6 @@ std::string getTimestamp(){
   time_t ping;
   struct tm* currentTime;
   char timeBuffer[80];
-  
   time(&ping);
   currentTime = localtime(&ping);
   strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
