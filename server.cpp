@@ -74,7 +74,7 @@ Request* parse(ConnObj* conn_state){ //This function parses HTTP request, exclud
   char * ptr = NULL;
   
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){ //Get the request_method
-    std::cout<<request_method;
+    std::cout<< "\n" <<request_method;
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
@@ -227,7 +227,7 @@ void* handle(void* conn_state_void){
       std::cout<<"Calling a function...\n"; //Call callFunc to call appropriate msg handler
       int success = callFunc(req->request_method, req, conn_state);
       if(success == 1){
-        req->printRequest();
+	// req->printRequest();
 	i = 0;
       } 
       else{
