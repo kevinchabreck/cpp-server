@@ -1,6 +1,8 @@
 #include "common.h"
 #include <iostream>
 #include <map>
+#include <algorithm>
+#include <string>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
