@@ -71,7 +71,7 @@ int headResponse(Request* req, ConnObj* conn_state){
     header+= "Date: "+ dateTime +"\r\n";
     header+= "Server: tinyserver.colab.duke.edu\r\n";
     if(allowsCompression(req)){  // COMPRESSION IS REQUESTED
-      //header+= "Content-Encoding: gzip\r\n";
+      header+= "Content-Encoding: gzip\r\n";
     }
     header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
     send(conn_state->response_socket,header.c_str(),header.length(),0);  
