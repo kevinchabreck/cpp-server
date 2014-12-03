@@ -10,15 +10,21 @@
 #include <sys/socket.h>
 #include <string.h>
 #include "common.h"
-
+#include "head.h"
 
 void putResponse(Request* req, ConnObj* conn_state){
   std::string requested_obj = "www" + req->request_URI;
   std::string filename;
   std::string dir;
-  std::size_t loc;
+  
   //Check if folder is authorized for PUTs
-  int allowed = conn_state->authorized(req->request_method, req->request_URI);
+  
+  std::string path = req->request_URI;
+  int loc = path.find_last_of("/");
+  std::string rel_path = get_relpath(path.substr(0, loc + 1)) + "/";
+  
+    //  std::cout<< rel_path.substr(3, std::string::npos) << " ALLOWED??";
+    int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
   
   //ERASE opening slash
   // requested_obj.erase(0,1); 
