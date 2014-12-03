@@ -27,7 +27,7 @@ void socket_setup(int& server_socket){   //This method sets up and binds socket 
   host_info.ai_family = AF_INET;
   host_info.ai_socktype = SOCK_STREAM;
   host_info.ai_flags = AI_PASSIVE;
-  status = getaddrinfo(NULL, "8000", &host_info, &host_info_list); //Populating the structs
+  status = getaddrinfo(NULL, "8080", &host_info, &host_info_list); //Populating the structs
   if(status < 0){
     fprintf(stderr, "error getting host info"); 
   }
