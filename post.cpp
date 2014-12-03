@@ -14,7 +14,7 @@
 
 void postResponse(Request* req, ConnObj* conn_state){
   
-  std::string requested_obj = "www/cgi-bin" + req->request_URI;
+  std::string requested_obj =  req->request_URI;
   std::string filename;
   std::string dir;
   std::size_t loc;
@@ -27,12 +27,12 @@ void postResponse(Request* req, ConnObj* conn_state){
   
   //Check if script exists
   struct stat st;
-  int exists = stat(script.c_str(), &st);
+  int not_exists = stat(("cgi-bin/"+script).c_str(), &st);
   
   // if no script specified, or script does not exist, return empty response 
-  if(script == "" || !exists){  
+  if(script == "" || not_exists == -1 ){  
     std::cout<<"invalid resource: "<<req->request_URI<< std::endl;
-    send204(conn_state);
+    send404(conn_state);
     return;
   }
 
@@ -42,9 +42,8 @@ void postResponse(Request* req, ConnObj* conn_state){
 
   if(ext != "pl" && ext != "php"){  
     std::cout<<"invalid script type ("<<script<<")\n";
-    std::cout<<"cpp-server only supports php and pearl scripts\n";
-    // TODO: send a better error code here?
-    send204(conn_state);
+    std::cout<<"cpp-server only supports php and pearl scripts\n";   
+     send405(conn_state);
     return;
   }
 
@@ -56,7 +55,7 @@ void postResponse(Request* req, ConnObj* conn_state){
     return;
   }
 
-  // TODO: add args to command
+ 
   std::string cmd = ext + " cgi-bin/" + script;
 
   // parse arguments out of body (if there are any)
@@ -101,9 +100,8 @@ void postResponse(Request* req, ConnObj* conn_state){
   }
   pclose(pipe);
 
-  // TODO: check if this is the correct status code when sending a POST response
-  std::string header = "HTTP/1.1 202 ACCEPT\r\nDate: "+ dateTime +"\r\nServer:\
-  tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
+  std::string header = "HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer:\
+  tinyserver.colab.duke.edu\r\nContent-Type: text\r\n\r\n";
   send(conn_state->response_socket,header.c_str(), header.length(), 0);
   send(conn_state->response_socket,result.c_str(), result.length(), 0);
 }
