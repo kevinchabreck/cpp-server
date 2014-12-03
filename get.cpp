@@ -23,7 +23,6 @@ bool beenModified(struct tm* ping, std::string file){
 }
 
 
-
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
   if((req->headers).count("accept-encoding") == 1){
@@ -33,7 +32,6 @@ bool allowsCompression(Request* req){
   }
   return false;
 }
-
 
 void sendBody(Request* req, ConnObj* conn_state){
   //Head and HTML buffers
@@ -53,7 +51,6 @@ void sendBody(Request* req, ConnObj* conn_state){
      fclose(fileName); 
    }
 }
-
 
 void getResponse(Request* req, ConnObj* conn_state){
   
