@@ -73,7 +73,7 @@ int headResponse(Request* req, ConnObj* conn_state){
     if(allowsCompression(req)){  // COMPRESSION IS REQUESTED
       //header+= "Content-Encoding: gzip\r\n";
     }
-    header+= "Content-Type: text/html\r\n\r\n";
+    header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
     send(conn_state->response_socket,header.c_str(),header.length(),0);  
     return 1;
   }
