@@ -68,8 +68,12 @@ void putResponse(Request* req, ConnObj* conn_state){
     //Keep running sum so can read exactly whats there and not end
     //up blocking
     while (sum < total){
-      if(total - sum > 8000){to_read = 8000;}
-      else{to_read = total - sum;}
+      if(total - sum > 8000){
+        to_read = 8000;
+      }
+      else{
+        to_read = total - sum;
+      }
       n = fread(buffer, 1, to_read, conn_state->msg_stream); 
       fwrite(buffer,1, to_read, dest);
       bzero(buffer, 8000);

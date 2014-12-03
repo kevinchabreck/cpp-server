@@ -58,6 +58,35 @@ void postResponse(Request* req, ConnObj* conn_state){
   // TODO: add args to command
   std::string cmd = ext + " cgi-bin/" + script;
 
+  // parse arguments out of body (if there are any)
+  if((req->headers).count("content-length")){
+    long int n = 0;
+    char buffer[8000];
+    std::string size = req->headers["content-length"];
+    char* ptr = NULL;
+    long int total = strtol(size.c_str(), &ptr, 10);
+    long int sum = 0;
+    int to_read;
+
+    std::string args = "";
+
+    while (sum < total){
+      if(total - sum > 8000){
+        to_read = 8000;
+      }
+      else{
+        to_read = total - sum;
+      }
+      n = fread(buffer, 1, to_read, conn_state->msg_stream);
+      args += buffer;
+      bzero(buffer, 8000);
+      sum = sum + n;
+    }
+    std::cout<<"args: "<<args<<std::endl;
+    std::replace(args.begin(), args.end(), '&', ' ');
+    cmd += " " + args;
+  }
+
   FILE* pipe = popen(cmd.c_str(), "r");
   if (!pipe){
     send500(conn_state);
