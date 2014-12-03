@@ -3,6 +3,7 @@
 
 #include "connection.h"
 
-void headResponse(Request* req, ConnObj* conn_state);
+int headResponse(Request* req, ConnObj* conn_state);
+std::string get_relpath(std::string URI);
 
 #endif
