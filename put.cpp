@@ -21,7 +21,7 @@ void putResponse(Request* req, ConnObj* conn_state){
   
   std::string path = req->request_URI;
   int loc = path.find_last_of("/");
-  std::string rel_path = get_relpath(path.substr(0, loc + 1)) + path.substr(loc, std::string::npos);
+  std::string rel_path = get_relpath(path.substr(0, loc + 1));
   
   //std::cout<< rel_path.substr(3, std::string::npos) << " ALLOWED??";
   int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
@@ -48,6 +48,7 @@ void putResponse(Request* req, ConnObj* conn_state){
     int exists = stat(requested_obj.c_str(), &st);
     if(exists == 0){
       if(S_ISDIR(st.st_mode)){
+	std::cout<<"tried to override a folder\n";
 	send403(conn_state);
 	return;
       }
