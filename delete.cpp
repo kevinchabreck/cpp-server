@@ -43,13 +43,6 @@ void deleteResponse(Request* req, ConnObj* conn_state){
    }
 
   else{ // Directory has user permissions
-    //Does the client require 'Continue' response
-    if((req->headers).count("expect") == 1){
-      if((req->headers)["expect"].find("100-continue") != std::string::npos){
-	header+="HTTP/" + req->http_version + "100 CONTINUE\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-	  send(conn_state->response_socket,header.c_str(),header.length(),0);
-          }
-    }
     //Try to remove the file
     if(remove(requestObject.c_str()) == 0){ // IF == 0, File was deleted
       header+="HTTP/" + req->http_version + "200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
