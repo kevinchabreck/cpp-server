@@ -23,7 +23,6 @@ void postResponse(Request* req, ConnObj* conn_state){
   // parse script name out of request
   unsigned found = requested_obj.find_last_of("/");
   std::string script = requested_obj.substr(found+1);
-
   //Check if script exists
   struct stat st;
   int not_exists = stat(("cgi-bin/"+script).c_str(), &st);
@@ -70,7 +69,6 @@ void postResponse(Request* req, ConnObj* conn_state){
       bzero(buffer, 8000);
       sum = sum + n;
     }
-    
     std::replace(args.begin(), args.end(), '&', ' ');
     cmd += " " + args;
   }
@@ -86,9 +84,7 @@ void postResponse(Request* req, ConnObj* conn_state){
     }
   }
   pclose(pipe);
-
   send200(conn_state);
- 
   send(conn_state->response_socket,result.c_str(), result.length(), 0);
 }
 
