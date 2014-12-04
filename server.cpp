@@ -32,25 +32,35 @@ void socket_setup(int& server_socket){
   host_info.ai_flags = AI_PASSIVE;
   status = getaddrinfo(NULL, "8080", &host_info, &host_info_list); //Populating the structs
   if(status < 0){
-    fprintf(stderr, "error getting host info"); 
+    if (mode == DEBUG){
+      log("Error Getting Host Info");
+    }
+    exit(EXIT_FAILURE);
   }
    
   server_socket = socket (AF_INET, SOCK_STREAM, 0); //Create TCP socket
   if (server_socket < 0){
-    fprintf(stderr, "COULD NOT OPEN SOCKET");
+    if (mode == DEBUG){
+      log("Error Creating Socket");
+    }
+    exit(EXIT_FAILURE);
   }
 
   int yes = 1;
   setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
   if (bind(server_socket, host_info_list->ai_addr, host_info_list->ai_addrlen) < 0){ //Bind socket
-    fprintf(stderr,"BINDING FAILED: %d\n", errno);
-    std::cout<<std::strerror(errno)<<"\n";
+    if (mode == DEBUG){
+      log("Binding Socket to Port Failed");
+    }
     exit(EXIT_FAILURE);
   }
 
   if(listen(server_socket, 5)< 0){ //Queue socket to start listening
-    fprintf(stderr, "Listening Failed");
+    if (mode == DEBUG){
+      log("Listening to Socket Failed");
+    }
+    exit(EXIT_FAILURE);
   }
 
   freeaddrinfo(host_info_list); //Free the struct used earlier
@@ -65,7 +75,10 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   conn_state->response_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_size); //This is a blocking method that waits for a connection to proceed
   std::cout<<"Connection received\n";
   if(conn_state->response_socket < 0){
-    fprintf(stderr, "ERROR ACCEPTING");
+    if (mode == DEBUG){
+      log("Accepting Connection Failed");
+    }
+    exit(EXIT_FAILURE);
   }
 }
 
@@ -79,19 +92,19 @@ Request* parse(ConnObj* conn_state){
   char * ptr = NULL;
   
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){ //Get the request_method
-    std::cout<< "\n" <<request_method;
+    log("Message Received: " + request_method);
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
   
   if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){ //Get the URI
-    std::cout<<request_URI;
+    log(request_URI);
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
   }
    
   if(getdelim(&http_version, &sz, '\n', msg_stream) > 0){ //Get the HTTP version
-    std::cout<<http_version;
+    log(http_version);
     ptr = strchr(http_version, '\n');
     *ptr = '\0';
   }
@@ -102,7 +115,11 @@ Request* parse(ConnObj* conn_state){
   char* lf = NULL;
   char* test = NULL;
   while (getline(&lineptr, &sz, msg_stream) > 0){ //Get all the optional headers present
-    std::cout<<lineptr;
+    
+    if (mode == DEBUG){
+      log(std::string(lineptr);
+    }
+   
     if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // line with only CRLF indicates end of header fields
       break;
     }
@@ -137,55 +154,49 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
 
   // TODO: convert this to a switch statement
   if(request_method =="GET"){  
-    std::cout<<"This is a GET!\n";
     getResponse(req, conn_state);
     success = 1; 
   }
   
   else if(request_method == "POST"){
-    std::cout<<"This is a POST!\n";
     postResponse(req, conn_state);
     success = 1; 
   }
 
   else if(request_method == "PUT"){
-    std::cout<<"This is a PUT!\n";
     putResponse(req, conn_state);
     success = 1; 
   }
 
   else if(request_method == "HEAD"){
-    std::cout<<"This is a HEAD!\n";
     headResponse(req, conn_state);
     success = 1; 
   }
 
   else if(request_method == "OPTIONS"){
-    std::cout<<"This is a OPTIONS!\n";
     optionsResponse(req, conn_state);
     success = 1;
   }
 
   else if(request_method == "DELETE"){
-    std::cout<<"This is a DELETE!\n";
     deleteResponse(req, conn_state);
     success = 1; 
   }
 
-  // TODO: send a "Not Implemented" resonse
-  // else if(request_method == "TRACE"){
-  //   std::cout<<"This is a TRACE!\n";
-  //   traceResponse(req, conn_state);
-  //   success = 1;
-  // }
+  //Not supporting these two methods, send 501
+  else if(request_method == "TRACE"){
+    log("Request Not Fulfilled, Response Sent (Method not Implemented)");
+    send501(conn_state);
+    success = 1;
+  }
 
-  // TODO: send a "Not Implemented" resonse
-  // else if(request_method == "CONNECT"){
-  //   std::cout<<"This is a CONNECT!\n";
-  //   connectResponse(req, conn_state);
-  //   success = 1; 
-  // }
-
+  //Not supporting these two methods, send 501
+  else if(request_method == "CONNECT"){
+    log("Request Not Fulfilled, Response Sent (Method not Implemented)");
+    send501(conn_state);
+    success = 1; 
+  }
+ 
   else{
     success = 0; 
   }
@@ -230,13 +241,12 @@ void* handle(void* conn_state_void){
         chillax = 0;
       }
       //Call callFunc to call appropriate msg handler
-      std::cout<<"Calling a function...\n";
       int success = callFunc(req->request_method, req, conn_state);
       if(success == 1){
         i = 0;
       } 
       else{
-        std::cout<<"Bad request";
+        log("Message Not Understood, Status Code 400 (Bad Request) Sent");
         send400(conn_state);
         delete req;
         break;
@@ -248,7 +258,10 @@ void* handle(void* conn_state_void){
       i+=.5;
     }
   }
-  std::cout<<"Killing this thread!\n";
+  
+  if(mode == DEBUG){
+    log("Connection Being Terminated");
+  }
   fclose(conn_state->msg_stream); 
   delete(conn_state);
   pthread_exit(NULL);
