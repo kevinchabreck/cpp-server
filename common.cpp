@@ -155,8 +155,7 @@ void log(std::string message) {
     std::ofstream out;
     FILE* logfile = fopen("logs/server.log", "a");
     if (logfile != NULL){
-
-      fputs((std::string("<") + getTimestamp() + std::string("> ") + message).c_str(), logfile);
+      fputs(("<"+getTimestamp()+"> "+message+"\n").c_str(), logfile);
       fclose(logfile);
     }
     pthread_mutex_unlock(&log_mutex);

@@ -26,4 +26,3 @@ void deleteResponse(Request* req, ConnObj* conn_state){
     }
   }
 }
-
