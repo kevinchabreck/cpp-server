@@ -104,7 +104,7 @@ Request* parse(ConnObj* conn_state){
     ptr = strchr(http_version, '\n');
     *ptr = '\0';
   }
-  log(std::string("\nMessage Received: ") + request_method + std::string(" ")+ request_URI + std::string(" ")+ http_version);
+  log(std::string("Message Received: ") + request_method + std::string(" ")+ request_URI + std::string(" ")+ http_version);
   //Create a new request object based on this information
   Request* req = new Request(request_method, request_URI, http_version);
   char* lineptr = NULL;
