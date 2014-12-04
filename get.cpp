@@ -10,14 +10,30 @@
 #include "common.h"
 #include "head.h"
 
-/*
-bool beenModified(struct tm* ping, std::string file){
-  if(headers.count("if-modified-since")){
-    std::string requestTime = headers
-  }
 
+bool beenModified(Request* req){
+  if(req->headers.count("If-Modified-Since")){
+    struct tm reqTime;
+    
+    std::string requestTime = (req->headers["If-Modified-Since"]);
+    if(strptime(requestTime.c_str(),"%a, %d %b %Y %H:%M:%S GMT", &reqTime) == NULL){
+      return true; //could not convert time
+    }
+    
+    struct stat fileStat;
+    stat(req->request_URI.c_str(),&fileStat);
+    
+    int time = difftime(fileStat.st_mtime, mktime(&reqTime));
+    if(time <= 0){
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return true;
 }
-*/
+
 
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
@@ -92,12 +108,16 @@ void  sendBody(Request* req, ConnObj* conn_state){
 
 
 void getResponse(Request* req, ConnObj* conn_state){
+  if(beenModified(req)){
+    int ok = headResponse(req, conn_state);
   
-  int ok = headResponse(req, conn_state);
-  
-  if (ok){
-    std::cout<<"GOING TO SEND BODY!!!\n";
-    sendBody(req, conn_state);
+    if (ok){
+      std::cout<<"GOING TO SEND BODY!!!\n";
+      sendBody(req, conn_state);
+    }
   }
-  
+  else{
+    send304(conn_state);
+  }
+ 
 }
