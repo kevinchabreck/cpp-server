@@ -23,15 +23,13 @@ void postResponse(Request* req, ConnObj* conn_state){
   // parse script name out of request
   unsigned found = requested_obj.find_last_of("/");
   std::string script = requested_obj.substr(found+1);
-  std::cout<<"script: "<<script<<std::endl;
-  
+    
   //Check if script exists
   struct stat st;
   int not_exists = stat(("cgi-bin/"+script).c_str(), &st);
   
   // if no script specified, or script does not exist, return empty response 
   if(script == "" || not_exists == -1 ){  
-    std::cout<<"invalid resource: "<<req->request_URI<< std::endl;
     send404(conn_state);
     return;
   }
@@ -41,9 +39,8 @@ void postResponse(Request* req, ConnObj* conn_state){
   std::string ext = script.substr(found+1);
 
   if(ext != "pl" && ext != "php"){  
-    std::cout<<"invalid script type ("<<script<<")\n";
-    std::cout<<"cpp-server only supports php and pearl scripts\n";   
-     send405(conn_state);
+    if(mode == DEBUG){log("Invalid Script Type Requested");}
+    send405(conn_state);
     return;
   }
 
@@ -82,7 +79,7 @@ void postResponse(Request* req, ConnObj* conn_state){
       bzero(buffer, 8000);
       sum = sum + n;
     }
-    std::cout<<"args: "<<args<<std::endl;
+    
     std::replace(args.begin(), args.end(), '&', ' ');
     cmd += " " + args;
   }
@@ -100,8 +97,7 @@ void postResponse(Request* req, ConnObj* conn_state){
   }
   pclose(pipe);
 
-  std::string header = "HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer:\
-  tinyserver.colab.duke.edu\r\nContent-Type: text\r\n\r\n";
+  send200(conn_state);
   send(conn_state->response_socket,header.c_str(), header.length(), 0);
   send(conn_state->response_socket,result.c_str(), result.length(), 0);
 }
