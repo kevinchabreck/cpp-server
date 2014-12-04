@@ -21,58 +21,49 @@ bool allowsCompression(Request* req){
   return false;
 }
 
-
 void  sendBody(Request* req, ConnObj* conn_state){
   //Head and HTML buffers
   char html[8000];
   int numBytes = 0;
   bool compressFailed = false;
-
   std::string rel_path = get_relpath(req->request_URI);
-  
   FILE* fileName = fopen(rel_path.c_str(),"r");
-
-  if(fileName  == NULL){//BAD REQUEST
+  if(fileName  == NULL){ // BAD REQUEST
     send404(conn_state);
   }
   else{
     if(allowsCompression(req)){
-      
       gzFile output = gzopen("compressed_file","wb");
-      
       if(!output){
-	std::cout << "Could not open/creat compressed file\n";
-	send500(conn_state);
-	compressFailed = true;
+        std::cout << "Could not open/creat compressed file\n";
+        send500(conn_state);
+        compressFailed = true;
       }
       else{
-	std::cout << "Compressing file\n";
-	while((numBytes = fread(html,1,sizeof(html),fileName)) > 0){
-	  gzwrite(output, html,numBytes);
-	}
-       
-	gzclose(output);
-	fclose(fileName);
-	FILE* fileName = fopen("compressed_file","r");
-     
-	if(!fileName){
-	  std::cout << "Could not open compressed file!\n";
-	  compressFailed = true;
-	  send500(conn_state);
-	}
-	else{
-	  compressFailed = false;
-	}
+        std::cout << "Compressing file\n";
+        while((numBytes = fread(html,1,sizeof(html),fileName)) > 0){
+          gzwrite(output, html,numBytes);
+        }
+        gzclose(output);
+        fclose(fileName);
+        FILE* fileName = fopen("compressed_file","r");
+        if(!fileName){
+          std::cout << "Could not open compressed file!\n";
+          compressFailed = true;
+          send500(conn_state);
+        }
+        else{
+          compressFailed = false;
+        }
       }
     }
-   
     if(compressFailed == false){
       while((numBytes = fread(html,1,8000,fileName)) > 0){
-	send(conn_state->response_socket,html,numBytes,0);
+        send(conn_state->response_socket,html,numBytes,0);
       }
       fclose(fileName);
       if(remove("compressed_file") != 0){
-	std::cout << "Compressed file could not be deleted!\n";
+        std::cout << "Compressed file could not be deleted!\n";
       }
     }
     else{
@@ -82,10 +73,8 @@ void  sendBody(Request* req, ConnObj* conn_state){
   }
 }
 
-
 void getResponse(Request* req, ConnObj* conn_state){
-  int ok = headResponse(req, conn_state);
-  
+  int ok = headResponse(req, conn_state);  
   if (ok){
     std::cout<<"GOING TO SEND BODY!!!\n";
     sendBody(req, conn_state);
