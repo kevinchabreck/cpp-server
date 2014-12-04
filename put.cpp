@@ -96,6 +96,11 @@ void putResponse(Request* req, ConnObj* conn_state){
     }   
     
     fclose(dest);
+    
+    char mode[]= "0755";
+    int p;
+    p = strtol(mode, 0, 8);
+    chmod(requested_obj.c_str(), p);
     //Call appropriate response msg
     if(exists != 0){
       std::cout<<"Created!\n";
