@@ -154,6 +154,7 @@ void log(std::string message) {
     std::ofstream out;
     out.open("logs/server.log", std::ios::app);
     out<<"<"<<getTimestamp()<<"> "<<message<<"\n";
+    out.close();
   }
   else if(mode == DEBUG){
     std::cout<<message<<"\n";
