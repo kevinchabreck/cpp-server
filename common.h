@@ -19,6 +19,7 @@ void send405(ConnObj* conn_state);
 void send411(ConnObj* conn_state);
 void sendHTML(ConnObj* conn_state, std::string status);
 void send500(ConnObj* conn_state);
+void send501(ConnObj* conn_state);
 // helper methods
 void log(std::string message);
 std::string getTimestamp();

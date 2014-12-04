@@ -119,6 +119,16 @@ void send500(ConnObj* conn_state){
   sendHTML(conn_state, "500");
 }
 
+void send501(ConnObj* conn_state){
+  std::string header;
+  header+= "HTTP/1.1 501 Not Implemented Error\r\n";
+  header += "Date: "+getTimestamp()+"\r\n";
+  header += "Server: tinyserver.colab.duke.edu\r\n";
+  header += "Content-Type: text/html\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  sendHTML(conn_state, "501");
+}
+
 /****************
 * Helper methods
 *****************/
