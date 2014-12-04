@@ -93,7 +93,7 @@ Request* parse(ConnObj* conn_state){
   char * ptr = NULL;
   
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){ //Get the request_method
-    log("Message Received: " + request_method);
+    log(std::string("Message Received: ") + request_method);
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
@@ -118,7 +118,7 @@ Request* parse(ConnObj* conn_state){
   while (getline(&lineptr, &sz, msg_stream) > 0){ //Get all the optional headers present
     
     if (mode == DEBUG){
-      log(std::string(lineptr);
+      log(std::string(lineptr));
     }
    
     if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // line with only CRLF indicates end of header fields
@@ -270,15 +270,13 @@ void* handle(void* conn_state_void){
 }
 
 int main(int argc, char ** argv) {
-  if (argc != 2) {
+  if (argc > 2) {
     std::cout<<"usage:\n";
-    std::cout<<"    server start    (launches in background as a daemon)\n";
-    std::cout<<"    server stop     (stop server daemon)\n";
-    std::cout<<"    server debug    (launch server in foreground)\n";
+    std::cout<<"    server         (logs server activity to logs/server.log)\n";
+    std::cout<<"    server -debug  (logs server activity to console)\n";
     return EXIT_FAILURE;
   }
-  std::string m = argv[1]; 
-  if(m == "start"){
+  if(argc == 1){
     mode = STANDARD;
     struct stat exists;
     if(stat("logs", &exists)){
@@ -286,11 +284,14 @@ int main(int argc, char ** argv) {
       mkdir("logs", S_IRWXU | S_IRWXG);
     }
   }
-  else if (m == "stop"){
-    return EXIT_SUCCESS;
-  }
-  else if (m == "debug" || m == "d"){
+  else if (std::string(argv[1]) == "-debug" || std::string(argv[1]) == "-d"){
     mode = DEBUG;
+  }
+  else{
+    std::cout<<"usage:\n";
+    std::cout<<"    server         (logs server activity to logs/server.log)\n";
+    std::cout<<"    server -debug  (logs server activity to console)\n";
+    return EXIT_FAILURE;
   }
 
   //Set up the socket
