@@ -13,7 +13,7 @@ bool beenModified(Request* req){
   if(req->headers.count("If-Modified-Since")){
     struct tm reqTime;
     std::string requestTime = (req->headers["If-Modified-Since"]);
-    if(strptime(requestTime.c_str(),"%a, %d %b %Y %H:%M:%S GMT", &reqTime) == NULL){
+    if(strptime(requestTime.c_str(),"%a, %d %b %Y %H:%M:%S -0500", &reqTime) == NULL){
       return true; //could not convert time
     }
     //Get last modified info from file
@@ -60,7 +60,7 @@ int headResponse(Request* req, ConnObj* conn_state){
     return 0;
   }
   else{
-    if(beenModified(req)){
+    if(!beenModified(req)){
       std::string header;
       std::string dateTime = getTimestamp();
       header+= "HTTP/1.1 202 ACCEPT\r\n";
