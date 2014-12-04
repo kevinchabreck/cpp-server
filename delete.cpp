@@ -1,13 +1,3 @@
-//========================================
-//Programmers: Sean Murray, Kevin Chabreck, Julien Mansier
-//Date: 11-25-2014
-//
-//Description:
-//This program will first check that the request directory has user permissions
-//If so, it will try to delete the requested file
-//The correct responses are: Unathorized, OK, and Not Found
-//=========================================
-
 #include "delete.h"
 #include <iostream>
 #include <stdio.h>
@@ -40,18 +30,15 @@ void deleteResponse(Request* req, ConnObj* conn_state){
   if(!allowed){
     // Directory does not have user permission
     send401(conn_state);
-   }
+  }
 
   else{ // Directory has user permissions
     //Try to remove the file
     if(remove(requestObject.c_str()) == 0){ // IF == 0, File was deleted
-      header+="HTTP/" + req->http_version + "200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-      send(conn_state->response_socket,header.c_str(),header.length(),0);
-      log("Delete Successful");
+      send200(conn_state);
     }
     else {// If it was not deleted
       send404(conn_state);
-      
     }
   }
 }
