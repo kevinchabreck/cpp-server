@@ -10,14 +10,6 @@
 #include "common.h"
 #include "head.h"
 
-/*
-bool beenModified(struct tm* ping, std::string file){
-  if(headers.count("if-modified-since")){
-    std::string requestTime = headers
-  }
-
-}
-*/
 
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
@@ -92,12 +84,11 @@ void  sendBody(Request* req, ConnObj* conn_state){
 
 
 void getResponse(Request* req, ConnObj* conn_state){
-  
   int ok = headResponse(req, conn_state);
   
   if (ok){
     std::cout<<"GOING TO SEND BODY!!!\n";
     sendBody(req, conn_state);
   }
-  
 }
+

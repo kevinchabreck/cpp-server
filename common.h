@@ -10,6 +10,7 @@
 void send100(ConnObj* conn_state);
 void send201(ConnObj* conn_state);
 void send204(ConnObj* conn_state);
+void send304(ConnObj* conn_state);
 void send400(ConnObj* conn_state);
 void send401(ConnObj* conn_state);
 void send403(ConnObj* conn_state);

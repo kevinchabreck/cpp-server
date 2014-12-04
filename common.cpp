@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -35,6 +36,15 @@ void send204(ConnObj* conn_state){
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
+}
+
+void send304(ConnObj* conn_state){
+  std::string header;
+  header += "HTTP/1.1 304 Not Modified\r\n";
+  header += "Date: "+getTimestamp()+"\r\n";
+  header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  std::cout << "Sending 304\n";
 }
 
 void send400(ConnObj* conn_state){
@@ -114,8 +124,13 @@ void send500(ConnObj* conn_state){
 *****************/
 
 void log(std::string message) {
-  if (!mode){
-    std::cout<<"mode is 0\n";
+  if(mode == STANDARD){
+    std::ofstream out;
+    out.open("logs/server.log", std::ios::app);
+    out<<"<"<<getTimestamp()<<"> "<<message<<"\n";
+  }
+  else if(mode == DEBUG){
+    std::cout<<message<<"\n";
   }
 }
 
