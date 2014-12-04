@@ -13,40 +13,33 @@
 #include "common.h"
 
 void postResponse(Request* req, ConnObj* conn_state){
-  
   std::string requested_obj =  req->request_URI;
   std::string filename;
   std::string dir;
   std::size_t loc;
   std::string dateTime = getTimestamp();
-  
   // parse script name out of request
   unsigned found = requested_obj.find_last_of("/");
   std::string script = requested_obj.substr(found+1);
   std::cout<<"script: "<<script<<std::endl;
-  
   //Check if script exists
   struct stat st;
   int not_exists = stat(("cgi-bin/"+script).c_str(), &st);
-  
   // if no script specified, or script does not exist, return empty response 
   if(script == "" || not_exists == -1 ){  
     std::cout<<"invalid resource: "<<req->request_URI<< std::endl;
     send404(conn_state);
     return;
   }
-
   // get extension of requested script
   found = script.find_last_of(".");
   std::string ext = script.substr(found+1);
-
   if(ext != "pl" && ext != "php"){  
     std::cout<<"invalid script type ("<<script<<")\n";
     std::cout<<"cpp-server only supports php and pearl scripts\n";   
      send405(conn_state);
     return;
   }
-
   // check if request had a continue
   if((req->headers).count("expect") == 1){
     if((req->headers)["expect"].find("100-continue") != std::string::npos){
@@ -54,10 +47,7 @@ void postResponse(Request* req, ConnObj* conn_state){
     }
     return;
   }
-
- 
   std::string cmd = ext + " cgi-bin/" + script;
-
   // parse arguments out of body (if there are any)
   if((req->headers).count("content-length")){
     long int n = 0;
@@ -67,9 +57,7 @@ void postResponse(Request* req, ConnObj* conn_state){
     long int total = strtol(size.c_str(), &ptr, 10);
     long int sum = 0;
     int to_read;
-
     std::string args = "";
-
     while (sum < total){
       if(total - sum > 8000){
         to_read = 8000;
@@ -86,7 +74,6 @@ void postResponse(Request* req, ConnObj* conn_state){
     std::replace(args.begin(), args.end(), '&', ' ');
     cmd += " " + args;
   }
-
   FILE* pipe = popen(cmd.c_str(), "r");
   if (!pipe){
     send500(conn_state);
@@ -99,7 +86,6 @@ void postResponse(Request* req, ConnObj* conn_state){
     }
   }
   pclose(pipe);
-
   std::string header = "HTTP/1.1 200 OK\r\nDate: "+ dateTime +"\r\nServer:\
   tinyserver.colab.duke.edu\r\nContent-Type: text\r\n\r\n";
   send(conn_state->response_socket,header.c_str(), header.length(), 0);
