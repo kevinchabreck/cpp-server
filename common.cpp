@@ -18,6 +18,7 @@ void send100(ConnObj* conn_state){
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
+  log("Continue Response Sent");
 }
 
 //Msg to be called when new resource is created on behalf of user
@@ -27,6 +28,7 @@ void send201(ConnObj* conn_state){
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);   
+  log("Put Response Fulfilled, Object Created");
 }
 
 // status code for a "no content" response
@@ -36,6 +38,7 @@ void send204(ConnObj* conn_state){
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
+  if(mode==DEBUG){log("204 (No Content) Sent to Client");}
 }
 
 void send304(ConnObj* conn_state){
@@ -44,7 +47,7 @@ void send304(ConnObj* conn_state){
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
-  std::cout << "Sending 304\n";
+  if(mode==DEBUG){log("304 (Not Modified) Sent to Client");}
 }
 
 void send400(ConnObj* conn_state){
@@ -65,6 +68,7 @@ void send401(ConnObj* conn_state){
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
   sendHTML(conn_state, "401");
+  log("Request not fulfilled, client not authorized");
 }
 
 void send403(ConnObj* conn_state){
@@ -79,12 +83,13 @@ void send403(ConnObj* conn_state){
 
 void send404(ConnObj* conn_state){
   std::string header;
-  header += "HTTP/1.1 404 Bad Request\r\n";
+  header += "HTTP/1.1 404 Not Found\r\n";
   header += "Date: "+getTimestamp()+"\r\n";
   header += "Server: tinyserver.colab.duke.edu\r\n";
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
   sendHTML(conn_state, "404");
+  log("Request not fulfilled, bad URI, sent 404");
 }
 
 void send405(ConnObj* conn_state){
@@ -95,7 +100,8 @@ void send405(ConnObj* conn_state){
   header += "Allow: .php, .pl\r\n";
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
-  sendHTML(conn_state, "404");
+  sendHTML(conn_state, "405");
+  log("Request not fulfilled, method not allowed, sent 405");
 }
 
 void send411(ConnObj* conn_state){
@@ -106,6 +112,7 @@ void send411(ConnObj* conn_state){
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
   sendHTML(conn_state, "411");
+  if(mode==DEBUG){log("Request not fulfilled, client did not send length, sent 411");}
 }   
 
 // status code for an internal server error
@@ -117,6 +124,7 @@ void send500(ConnObj* conn_state){
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
   sendHTML(conn_state, "500");
+  log("Request not fulfilled, encountered internal error, sent 500");
 }
 
 void send501(ConnObj* conn_state){
@@ -127,7 +135,7 @@ void send501(ConnObj* conn_state){
   header += "Content-Type: text/html\r\n\r\n";
   send(conn_state->response_socket,header.c_str(),header.length(),0);
   sendHTML(conn_state, "501");
-}
+ }
 
 /****************
 * Helper methods
@@ -156,7 +164,7 @@ void sendHTML(ConnObj* conn_state, std::string status){
     }
     int check = fclose(html_file);
     if(check != 0){
-      fprintf(stderr, "Error closing file!\n");
+      if(mode==DEBUG){log("Error Closing File");};
     }
   }
 }

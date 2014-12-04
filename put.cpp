@@ -12,6 +12,8 @@
 #include "common.h"
 #include "head.h"
 
+extern int mode;
+
 void putResponse(Request* req, ConnObj* conn_state){
   std::string requested_obj = "www" + req->request_URI;
   std::string filename;
@@ -23,15 +25,9 @@ void putResponse(Request* req, ConnObj* conn_state){
   int loc = path.find_last_of("/");
   std::string rel_path = get_relpath(path.substr(0, loc + 1));
   
-  //std::cout<< rel_path.substr(3, std::string::npos) << " ALLOWED??";
   int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
   
-  //ERASE opening slash
-  // requested_obj.erase(0,1); 
-  
   if(!allowed){  
-    std::cout<<"Tried to access: " << rel_path <<"\n";
-    std::cout << " Folder not authorized\n"; 
     send403(conn_state);
   }
 
@@ -48,18 +44,18 @@ void putResponse(Request* req, ConnObj* conn_state){
     int exists = stat(requested_obj.c_str(), &st);
     if(exists == 0){
       if(S_ISDIR(st.st_mode)){
-	std::cout<<"tried to override a folder\n";
+	if(mode==DEBUG){log("Tried to override a folder with file of the same name");}
 	send403(conn_state);
 	return;
       }
     }
     
-    std::cout<<"Folder is authorized\n";
-    
     //Open file to write into
     FILE* dest = fopen(requested_obj.c_str(), "w");
     if (dest == NULL){
-      fprintf(stderr, "Error opening file\n");
+      if(mode==DEBUG){log("Opening File Failed");}
+      send500(conn_state);
+      return;
     }
    
     //Figue out how long body will be
@@ -92,7 +88,6 @@ void putResponse(Request* req, ConnObj* conn_state){
       fwrite(buffer,1, to_read, dest);
       bzero(buffer, 8000);
       sum = sum + n;
-      std::cout <<" Received so far: "<<sum << "\n";
     }   
     
     fclose(dest);
@@ -103,11 +98,9 @@ void putResponse(Request* req, ConnObj* conn_state){
     chmod(requested_obj.c_str(), p);
     //Call appropriate response msg
     if(exists != 0){
-      std::cout<<"Created!\n";
       send201(conn_state);
     }
     else{
-      std::cout<<"Modified!\n";
       send204(conn_state);
     }
 

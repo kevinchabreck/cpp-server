@@ -39,15 +39,12 @@ std::string get_relpath(std::string URI){
   absolute_path = realpath(path.c_str(), absolute_path);
   
   if(absolute_path == NULL){
-    std::cout<<"Absolute path NULL! File not Found\n";
     return "NULL";
   }
-  // std::cout<< absolute_path << "\n";
   std::string requestObject(absolute_path);
   free(absolute_path);
   std::string rel_path = requestObject.substr(requestObject.rfind("www"), std::string::npos);
-  //std::cout <<rel_path << "\n";
-  
+   
   struct stat st;
 
   stat(rel_path.c_str(), &st);
@@ -55,7 +52,6 @@ std::string get_relpath(std::string URI){
   if(S_ISDIR(st.st_mode)){
     rel_path += "/index.html";
   }
-  
   return rel_path;
 }
 
@@ -72,7 +68,6 @@ int headResponse(Request* req, ConnObj* conn_state){
 
   int allowed = conn_state->authorized(req->request_method, rel_path.substr(3, std::string::npos));
   if(!allowed){
-    std::cout<< "Folder not authorized\n";
     send403(conn_state);    
     return 0;
   }
