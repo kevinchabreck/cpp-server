@@ -270,7 +270,6 @@ int main(int argc, char ** argv) {
     std::cout<<"    server -debug  (logs server activity to console)\n";
     return EXIT_FAILURE;
   }
-
   //Set up the socket
   int server_socket;
   socket_setup(server_socket);
