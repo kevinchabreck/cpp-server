@@ -10,6 +10,7 @@
 #include "common.h"
 #include "head.h"
 
+extern int mode;
 
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
