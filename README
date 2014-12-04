@@ -78,7 +78,8 @@ until the user force quits.
 
    Our server maintains a list of folders that are open to the public for various
    activities. There is a list of folders that users can GET/HEAD from, and a 
-   separate list that users can PUT to and DELETE from. 
+   separate list that users can PUT to and DELETE from. Implementing some 
+   features was one of our stretch goals. 
 
    Testing for client-side cache
    Open up a local terminal
@@ -87,7 +88,9 @@ until the user force quits.
    304 not modified is displayed, and no body is sent
 
    Type "curl -v --header 'If-Modified-Since: Sat, 10 Jan 2011 23:10:24 -0500' tinyserver.colab.duke.edu"
-   Request is accpeted and body is sent
+   Request is accpeted and body is sent. This allows clients to reduce
+   web congestion by only asking a body to be sent, if a file has been modified.
+   This was one of our stretch goals
 
    Test for compression:
    Open up a terminal
