@@ -19,7 +19,10 @@
 #include "post.h"
 #include "common.h"
 
-void socket_setup(int& server_socket){   //This method sets up and binds socket to port 8000
+int mode;
+
+//This method sets up and binds socket to port 8000
+void socket_setup(int& server_socket){
   int status;
   struct addrinfo host_info;    //These structs are populated by getaddrinfo function
   struct addrinfo* host_info_list;
@@ -41,8 +44,9 @@ void socket_setup(int& server_socket){   //This method sets up and binds socket 
   setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
   if (bind(server_socket, host_info_list->ai_addr, host_info_list->ai_addrlen) < 0){ //Bind socket
-    fprintf(stderr,"BINDING FAILED: %d", errno);
+    fprintf(stderr,"BINDING FAILED: %d\n", errno);
     std::cout<<std::strerror(errno)<<"\n";
+    exit(EXIT_FAILURE);
   }
 
   if(listen(server_socket, 5)< 0){ //Queue socket to start listening
@@ -65,7 +69,8 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   }
 }
 
-Request* parse(ConnObj* conn_state){ //This function parses HTTP request, excluding the entity body
+//This function parses HTTP request, excluding the entity body
+Request* parse(ConnObj* conn_state){
   FILE* msg_stream = conn_state->msg_stream;
   size_t sz;
   char* request_method =NULL;
@@ -130,6 +135,7 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
 
   //Depending on what request type is, call appropriate function to handle it
 
+  // TODO: convert this to a switch statement
   if(request_method =="GET"){  
     std::cout<<"This is a GET!\n";
     getResponse(req, conn_state);
@@ -148,35 +154,37 @@ int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
     success = 1; 
   }
 
-else if(request_method == "HEAD"){
+  else if(request_method == "HEAD"){
     std::cout<<"This is a HEAD!\n";
     headResponse(req, conn_state);
     success = 1; 
   }
 
- else if(request_method == "OPTIONS"){
-     std::cout<<"This is a OPTIONS!\n";
-     optionsResponse(req, conn_state);
-     success = 1; 
-   }
+  else if(request_method == "OPTIONS"){
+    std::cout<<"This is a OPTIONS!\n";
+    optionsResponse(req, conn_state);
+    success = 1;
+  }
 
-else if(request_method == "DELETE"){
+  else if(request_method == "DELETE"){
     std::cout<<"This is a DELETE!\n";
     deleteResponse(req, conn_state);
     success = 1; 
   }
 
-// else if(request_method == "TRACE"){
-//     std::cout<<"This is a TRACE!\n";
-//     traceResponse(req, conn_state);
-//     success = 1; 
-//   }
+  // TODO: send a "Not Implemented" resonse
+  // else if(request_method == "TRACE"){
+  //   std::cout<<"This is a TRACE!\n";
+  //   traceResponse(req, conn_state);
+  //   success = 1;
+  // }
 
-//  else if(request_method == "CONNECT"){
-//    std::cout<<"This is a CONNECT!\n";
-//    connectResponse(req, conn_state);
-//    success = 1; 
-//   }
+  // TODO: send a "Not Implemented" resonse
+  // else if(request_method == "CONNECT"){
+  //   std::cout<<"This is a CONNECT!\n";
+  //   connectResponse(req, conn_state);
+  //   success = 1; 
+  // }
 
   else{
     success = 0; 
@@ -186,37 +194,34 @@ else if(request_method == "DELETE"){
 
 
 void* handle(void* conn_state_void){
-  //This function is what handles individual connections as they are reveived
+  //This function is what handles individual connections as they are received
   ConnObj* conn_state = (ConnObj*)conn_state_void;
   Request* req;
   std::string persist = std::string("keep-alive");
-  struct timeval hang_out_time; //Struct to determine blockng time
+  struct timeval hang_out_time; //Struct to determine blocking time
   double chillax = 500000; //Watiting 0.5 seconds, 500,000 microseconds
   hang_out_time.tv_sec = 0;
   hang_out_time.tv_usec = chillax;
- 
 
   double i = 0; 
   int available = 0;
 
   while(i < 1){
-    //  std::cout<<"LOOPING - i = " << i <<"\n";
-    
-    fd_set set; //These structs and the select() method determine if there is something to be read in the socket
+    // determine if there is something to be read in the socket
+    fd_set set;
     FD_ZERO(&set); 
     FD_SET(conn_state->response_socket, &set);
     available = select(FD_SETSIZE, &set, NULL, NULL, &hang_out_time);
-    
     //count will return number of bytes available to read from socket
     int count;
     ioctl(conn_state->response_socket, FIONREAD, &count);
-  
     hang_out_time.tv_usec = chillax;
-   
-    if(available > 0 && count > 0){ //If there is data available to read from socket, enter the loop
+    //If there is data available to read from socket, enter the loop
+    if(available > 0 && count > 0){
       req = parse(conn_state); //Parse the socket data
      
-      if((req->headers).count("connection")){ //If no connection:keep alive stated, set wait time to 0 so will kill connection quickly
+      if((req->headers).count("connection")){
+        //check for "connection:keep alive"
         if(req->headers["connection"].find(persist) == std::string::npos){
           chillax = 0;
         }
@@ -224,21 +229,20 @@ void* handle(void* conn_state_void){
       else{
         chillax = 0;
       }
-      std::cout<<"Calling a function...\n"; //Call callFunc to call appropriate msg handler
+      //Call callFunc to call appropriate msg handler
+      std::cout<<"Calling a function...\n";
       int success = callFunc(req->request_method, req, conn_state);
       if(success == 1){
-	// req->printRequest();
-	i = 0;
+        i = 0;
       } 
       else{
         std::cout<<"Bad request";
-	send400(conn_state);
-	delete req;
-	break;
+        send400(conn_state);
+        delete req;
+        break;
       }
       delete req;
       req = NULL;
-
     }
     else{
       i+=.5;
@@ -252,12 +256,33 @@ void* handle(void* conn_state_void){
 }
 
 int main(int argc, char ** argv) {
-  int server_socket;
-  // int i = 0;
-  socket_setup(server_socket); //Set up the socket
-  ConnObj* conn_state = NULL;
+  // mode = 0;
+  // log("");
+  // std::cout<<"argc: "<<argc<<std::endl;
+  if (argc != 2) {
+    std::cout<<"usage:\n";
+    std::cout<<"    server start    (launches in background as a daemon)\n";
+    std::cout<<"    server stop     (stop server daemon)\n";
+    std::cout<<"    server debug    (launch server in foreground)\n";
+    return EXIT_FAILURE;
+  }
+  std::string m = argv[1]; 
+  if(m == "start"){
+    mode = STANDARD;
+  }
+  else if (m == "stop"){
+    return EXIT_SUCCESS;
+  }
+  else if (m == "debug" || m == "d"){
+    mode = DEBUG;
+  }
 
-  while(1){ //This loop goes infinitely on listening for new connections
+  //Set up the socket
+  int server_socket;
+  socket_setup(server_socket);
+  ConnObj* conn_state = NULL;
+  // listen for new connections
+  while(1){
     conn_state = new ConnObj();
     pthread_t thread_name;
     get_connections(server_socket, conn_state);
@@ -265,15 +290,14 @@ int main(int argc, char ** argv) {
     if (conn_state->msg_stream == NULL){
       fprintf(stderr, "Error: %s\n",strerror(errno)); 
     }
-  
-    int spawn = pthread_create(&thread_name, NULL, handle, conn_state); //Spawn new thread when get new connection
-    pthread_detach(thread_name); //Detach from thread to enable freeing of the memory
+    //Spawn new thread when get new connection
+    int spawn = pthread_create(&thread_name, NULL, handle, conn_state);
+    //Detach from thread to enable freeing of the memory
+    pthread_detach(thread_name);
     if(spawn){
       fprintf(stderr, "Error spawning new thread, returned: %d\n", spawn);
     }
-    //  i++;
   }
   
- 
   return EXIT_SUCCESS;
 }
