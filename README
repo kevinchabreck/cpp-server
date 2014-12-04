@@ -85,6 +85,12 @@ until the user force quits.
    Our server maintains a list of folders that are open to the public for various
    activities. There is a list of folders that users can GET/HEAD from, and a 
    separate list that users can PUT to and DELETE from. 
+
+   Testing for client-side cache
+   Open up a local terminal
+
+   Type "curl -I --header 'If-Modified-Since: Tue, 11 Dec 2012 10:10:24 -0500' localhost:8080"
+   304 not modified is displayed  
    
 4) Testing HEAD
    
