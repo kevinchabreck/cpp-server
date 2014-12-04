@@ -28,5 +28,4 @@ void optionsResponse(Request* req, ConnObj* conn_state){
   header+= "Content-Type: http/images/audio/text/video\r\n";
 
   send(conn_state->response_socket,header.c_str(),header.length(),0);
-  std::cout << header;
 }

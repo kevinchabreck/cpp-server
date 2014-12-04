@@ -22,15 +22,12 @@ bool allowsCompression(Request* req){
   return false;
 }
 
-
 void  sendBody(Request* req, ConnObj* conn_state){
   //Head and HTML buffers
   char html[8000];
   int numBytes = 0;
   bool compressFailed = false;
-
   std::string rel_path = get_relpath(req->request_URI);
-  
   FILE* fileName = fopen(rel_path.c_str(),"r");
 
   if(fileName  == NULL){//BAD REQUEST
@@ -42,15 +39,14 @@ void  sendBody(Request* req, ConnObj* conn_state){
       gzFile output = gzopen("compressed_file","wb");
       
       if(!output){
-      if(mode == DEBUG){
-        log("Could not open/create compressed file");
-      }
-      send500(conn_state);
-      compressFailed = true;
-      return;
+        if(mode == DEBUG){
+          log("Could not open/create compressed file");
+        }
+        send500(conn_state);
+        compressFailed = true;
+        return;
       }
       else{
-        std::cout<<"Made it this far\n";
         while((numBytes = fread(html,1,sizeof(html),fileName)) > 0){
           gzwrite(output, html,numBytes);
         }
@@ -58,7 +54,6 @@ void  sendBody(Request* req, ConnObj* conn_state){
         gzclose(output);
         fclose(fileName);
         FILE* fileName = fopen("compressed_file","r");
-        std::cout<<"Stil alive\n";
         if(!fileName){
           if(mode == DEBUG){
             log("Could not open/create compressed file");
@@ -72,16 +67,12 @@ void  sendBody(Request* req, ConnObj* conn_state){
         }
       }
     }
-    std::cout<<"not dead yet\n";
     if(compressFailed == false){
       while((numBytes = fread(html,1,8000,fileName)) > 0){
         send(conn_state->response_socket,html,numBytes,0);
       }
-      std::cout<<"still there!\n";
-      // fclose(fileName);
-      std::cout<<"lsakjflksajf]n\n";
+      fclose(fileName);
       remove("compressed_file");
-     
     }
     else{
       send500(conn_state);
@@ -89,10 +80,8 @@ void  sendBody(Request* req, ConnObj* conn_state){
   }
 }
 
-
 void getResponse(Request* req, ConnObj* conn_state){
   int ok = headResponse(req, conn_state);
-  
   if (ok){
     sendBody(req, conn_state);
   }

@@ -58,7 +58,6 @@ void putResponse(Request* req, ConnObj* conn_state){
       return;
     }
     std::string size = req->headers["content-length"];
-    std::cout << "Content length expected: "<< size << "\n";
     char* ptr = NULL;
     long int total = strtol(size.c_str(), &ptr, 10);
     long int sum = 0;
