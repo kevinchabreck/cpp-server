@@ -4,13 +4,6 @@ FLAGS= -ggdb3 -Wall -Werror -pedantic -std=gnu++11
 build:
 	make server
 
-test:
-	# make clean
-	# make server
-	make testing
-# TODO: ./testing
-# TODO: rm testing
-
 server: server.o connection.o get.o head.o common.o delete.o put.o options.o post.o
 	$(CC) $(FLAGS) server.o connection.o get.o head.o common.o delete.o put.o options.o post.o -o server -lpthread -lz
 
@@ -24,10 +17,6 @@ delete.o: delete.h connection.o common.o
 options.o: options.h connection.o
 post.o: post.h connection.o common.o
 
-testing: testing.cpp
-	$(CC) $(FLAGS) testing.cpp -o testing
-
 clean:
 	rm -f *.o
 	rm server
-	rm testing
