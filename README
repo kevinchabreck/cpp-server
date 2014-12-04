@@ -89,8 +89,23 @@ until the user force quits.
    Testing for client-side cache
    Open up a local terminal
 
-   Type "curl -I --header 'If-Modified-Since: Tue, 11 Dec 2012 10:10:24 -0500' localhost:8080"
-   304 not modified is displayed  
+   Type "curl -v --header 'If-Modified-Since: Sat, 10 Jan 2015 23:10:24 -0500' tinyserver.colab.duke.edu"
+   304 not modified is displayed, and no body is sent
+
+   Type "curl -v --header 'If-Modified-Since: Sat, 10 Jan 2011 23:10:24 -0500' tinyserver.colab.duke.edu"
+   Request is accpeted and body is sent
+
+   Test for compression:
+   Open up a terminal
+
+   Type "curl -v  tinyserver.colab.duke.edu"
+   The resulting header should not contain: Content-Encoding: gzip
+
+   Type "curl -v --header 'Accept-Encoding: gzip' tinyserver.colab.duke.edu"
+   This header displays: Content-Encoding: gzip
+
+   The server will compress the requested file using zlib. This is then sent to the client.
+   This is only done if the client indicates: Accept-Encoding: gzip
    
 4) Testing HEAD
    
@@ -102,7 +117,7 @@ until the user force quits.
    information about the file.
 
    Type "curl --head tinyserver.colab.duke.edu/wlkegj curl should display appropriate
-   404 bad request error msg.
+   404 not found error msg.
 
 
 5) Testing PUT
@@ -113,6 +128,8 @@ until the user force quits.
    
    where <any_local_file.ext> is any local file you'd like to upload to the VM, and <filename.ext> 
    is what you'd like it to be called. The file should be uploaded to user_folder/
+   **Note: We created this file with executable permissions. We realize that a real server may not have
+   reasons to do this.**
 
    Type "curl --upload-file <any_local_file.ext> tinyserver.colab.duke.edu/private/<filename.ext>"
    
@@ -130,12 +147,14 @@ until the user force quits.
    
 6) Testing POST
 
-   Kevin please provide
-
+   Type "curl -i --data "var1=hello&var2=world" tinyserver.colab.duke.edu/resource.php"
+   Input variables are rn through a sript. The result is the strings reversed. 
+   
 7) Testing OPTIONS
 
    Open up a local terminal
 
-   Type "curl -X OPTIONS --head localhost:8080"
+   Type "curl -v -X OPTIONS  tinyserver.colab.duke.edu"
 
    This displays the methods that are allowed
+
