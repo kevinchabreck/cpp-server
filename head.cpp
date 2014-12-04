@@ -20,7 +20,7 @@ bool beenModified(Request* req){
     struct stat fileStat;
     stat(req->request_URI.c_str(),&fileStat);
     int time = difftime(fileStat.st_mtime, mktime(&reqTime));
-    if(time <= 0){
+    if(time >= 0){
       return false;
     }
     else {
@@ -60,7 +60,7 @@ int headResponse(Request* req, ConnObj* conn_state){
     return 0;
   }
   else{
-    // if(!beenModified(req)){
+     if(beenModified(req)){
       std::string header;
       std::string dateTime = getTimestamp();
       header+= "HTTP/1.1 202 ACCEPT\r\n";
@@ -72,7 +72,7 @@ int headResponse(Request* req, ConnObj* conn_state){
       header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
       send(conn_state->response_socket,header.c_str(),header.length(),0);  
       return 1;
-      // } 
+       } 
     send304(conn_state);
     return 0; 
   }
