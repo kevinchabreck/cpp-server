@@ -47,6 +47,10 @@ until the user force quits.
 
 1) Compiling the server:
    
+   Type: bash
+   
+   Type: source ./profile   
+
    Navigate to the directory </home/drew/cpp-server/> and type "make"
 
 2) Running the program:
