@@ -47,13 +47,11 @@ void deleteResponse(Request* req, ConnObj* conn_state){
     if(remove(requestObject.c_str()) == 0){ // IF == 0, File was deleted
       header+="HTTP/" + req->http_version + "200 OK\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
       send(conn_state->response_socket,header.c_str(),header.length(),0);
-      std::cout <<"\nDELETE " + requestObject+ " SUCCESSFUL!\n";
+      log("Delete Successful");
     }
     else {// If it was not deleted
-      header+="HTTP/" + req->http_version + "404 NOT FOUND\r\nDate: "+ dateTime +"\r\nServer: tinyserver.colab.duke.edu\r\nContent-Type: text/html\r\n\r\n";
-      send(conn_state->response_socket,header.c_str(),header.length(),0);
-      std::cout <<"\nDELETE " + requestObject+ " FAILED!: File not found.\n";
-   
+      send404(conn_state);
+      
     }
   }
 }
