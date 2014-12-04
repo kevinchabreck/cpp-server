@@ -3,6 +3,7 @@
 #include <map>
 #include <algorithm>
 #include <string>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -123,8 +124,13 @@ void send500(ConnObj* conn_state){
 *****************/
 
 void log(std::string message) {
-  if (!mode){
-    std::cout<<"mode is 0\n";
+  if(mode == STANDARD){
+    std::ofstream out;
+    out.open("logs/server.log", std::ios::app);
+    out<<"<"<<getTimestamp()<<"> "<<message<<"\n";
+  }
+  else if(mode == DEBUG){
+    std::cout<<message<<"\n";
   }
 }
 

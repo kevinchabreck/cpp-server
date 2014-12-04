@@ -1,5 +1,6 @@
 server
 testing
+logs
 *.o
 *.dSYM
 *~

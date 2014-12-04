@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include <sys/ioctl.h>
 #include <sys/select.h>
+#include <sys/stat.h>
 #include "connection.h"
 #include "get.h"
 #include "put.h"
@@ -256,9 +257,6 @@ void* handle(void* conn_state_void){
 }
 
 int main(int argc, char ** argv) {
-  // mode = 0;
-  // log("");
-  // std::cout<<"argc: "<<argc<<std::endl;
   if (argc != 2) {
     std::cout<<"usage:\n";
     std::cout<<"    server start    (launches in background as a daemon)\n";
@@ -269,6 +267,11 @@ int main(int argc, char ** argv) {
   std::string m = argv[1]; 
   if(m == "start"){
     mode = STANDARD;
+    struct stat exists;
+    if(stat("logs", &exists)){
+      std::cout<<"no logs directory - creating one\n";
+      mkdir("logs", S_IRWXU | S_IRWXG);
+    }
   }
   else if (m == "stop"){
     return EXIT_SUCCESS;
