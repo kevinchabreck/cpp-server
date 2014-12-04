@@ -58,6 +58,7 @@ int headResponse(Request* req, ConnObj* conn_state){
   }
 
   else{
+    if(beenModified(req)){
     std::string header;
     time_t ping;
     struct tm* currentTime;
@@ -76,6 +77,10 @@ int headResponse(Request* req, ConnObj* conn_state){
     header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
     send(conn_state->response_socket,header.c_str(),header.length(),0);  
     return 1;
+    } 
+      send304(conn_state);
+      return 1;
+    
   }
   
 }

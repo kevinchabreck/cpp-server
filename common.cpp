@@ -37,6 +37,15 @@ void send204(ConnObj* conn_state){
   send(conn_state->response_socket,header.c_str(),header.length(),0);
 }
 
+void send304(ConnObj* conn_state){
+  std::string header;
+  header += "HTTP/1.1 304 Not Modified\r\n";
+  header += "Date: "+getTimestamp()+"\r\n";
+  header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);
+  std::cout << "Sending 304\n";
+}
+
 void send400(ConnObj* conn_state){
   std::string header;
   header += "HTTP/1.1 400 Bad Request\r\n";
