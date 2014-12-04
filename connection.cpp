@@ -5,8 +5,8 @@
 
 
 /************************
-* Request class methods
-*************************/
+ * Request class methods
+ *************************/
 
 Request::Request(char* r, char* u, char* h): request_method(r), request_URI(u), http_version(h) {
   time_t ping;
@@ -71,8 +71,8 @@ void Request::printRequest() {
 }
 
 /***********************
-* ConnObj class methods 
-************************/
+ * ConnObj class methods 
+ ************************/
 
 ConnObj::ConnObj() {
   msg_stream = NULL;
@@ -88,7 +88,7 @@ ConnObj::~ConnObj(){
 }
 
 void ConnObj::read_privileges(char* filename, std::set<std::string>* auth){
- FILE* input_file;
+  FILE* input_file;
   input_file = fopen(filename, "r");
   if(input_file == NULL){
     fprintf(stderr, "Error opening File");

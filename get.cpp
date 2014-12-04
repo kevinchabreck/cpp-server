@@ -10,7 +10,6 @@
 #include "common.h"
 #include "head.h"
 
-extern int mode;
 
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
@@ -42,13 +41,12 @@ void  sendBody(Request* req, ConnObj* conn_state){
       gzFile output = gzopen("compressed_file","wb");
       
       if(!output){
-	if(mode == DEBUG){
-	  log("Could not open/create compressed file");
-	}
+	std::cout << "Could not open/creat compressed file\n";
 	send500(conn_state);
 	compressFailed = true;
       }
       else{
+	std::cout << "Compressing file\n";
 	while((numBytes = fread(html,1,sizeof(html),fileName)) > 0){
 	  gzwrite(output, html,numBytes);
 	}
@@ -58,9 +56,7 @@ void  sendBody(Request* req, ConnObj* conn_state){
 	FILE* fileName = fopen("compressed_file","r");
      
 	if(!fileName){
-	  if(mode == DEBUG){
-	    log("Could not open/create compressed file");
-	  }
+	  std::cout << "Could not open compressed file!\n";
 	  compressFailed = true;
 	  send500(conn_state);
 	}
@@ -76,9 +72,11 @@ void  sendBody(Request* req, ConnObj* conn_state){
       }
       fclose(fileName);
       if(remove("compressed_file") != 0){
+	std::cout << "Compressed file could not be deleted!\n";
       }
     }
     else{
+      std::cout << "Could not send to client!\n";
       send500(conn_state);
     }
   }
@@ -89,7 +87,7 @@ void getResponse(Request* req, ConnObj* conn_state){
   int ok = headResponse(req, conn_state);
   
   if (ok){
+    std::cout<<"GOING TO SEND BODY!!!\n";
     sendBody(req, conn_state);
   }
 }
-

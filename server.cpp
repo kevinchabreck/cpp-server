@@ -72,9 +72,10 @@ void get_connections(int& server_socket, ConnObj* conn_state){
   socklen_t client_addr_size;
   client_addr_size = sizeof(client_addr); 
   
-  std::cout<<"waiting for connection\n";
+  
   conn_state->response_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_size); //This is a blocking method that waits for a connection to proceed
-  std::cout<<"Connection received\n";
+  
+  if(mode == DEBUG){log("Connection Received\n");}
   if(conn_state->response_socket < 0){
     if (mode == DEBUG){
       log("Accepting Connection Failed");
@@ -93,22 +94,21 @@ Request* parse(ConnObj* conn_state){
   char * ptr = NULL;
   
   if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){ //Get the request_method
-    log(std::string("Message Received: ") + request_method);
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
   
   if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){ //Get the URI
-    log(request_URI);
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
   }
-   
+  
   if(getdelim(&http_version, &sz, '\n', msg_stream) > 0){ //Get the HTTP version
-    log(http_version);
     ptr = strchr(http_version, '\n');
     *ptr = '\0';
   }
+
+  log(std::string("\nMessage Received: ") + request_method + std::string(" ")+ request_URI + std::string(" ")+ http_version);
 
   Request* req = new Request(request_method, request_URI, http_version); //Create a new request object based on this information
   char* lineptr = NULL;
