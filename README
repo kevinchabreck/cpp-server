@@ -118,6 +118,8 @@ until the user force quits.
 
 7) Testing OPTIONS
 
-   Julien please provide
+   Open up a local terminal
 
-    
+   Type "curl -X OPTIONS --head localhost:8080"
+
+   This displays the methods that are allowed

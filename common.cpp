@@ -21,6 +21,14 @@ void send100(ConnObj* conn_state){
   log("Continue Response Sent");
 }
 
+void send200(ConnObj* conn_state){
+  std::string header;
+  header += "HTTP/1.1 200 OK\r\n";
+  header += "Date: "+getTimestamp()+"\r\n";
+  header += "Server: tinyserver.colab.duke.edu\r\n\r\n";
+  send(conn_state->response_socket,header.c_str(),header.length(),0);   
+}
+
 //Msg to be called when new resource is created on behalf of user
 void send201(ConnObj* conn_state){
   std::string header;
