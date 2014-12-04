@@ -57,7 +57,13 @@ until the user force quits.
 
 2) Running the program:
 
-   Type ./server
+   There are modes the server can be run in, normal mode and debugging mode.
+   "./server -d" will run the program in debugging mode, which will 
+   log additional data for debugging. It is recommened you go through
+   this procedure in debugging mode, to see output in real time on
+   std out. When run without the "-d" option, a reduced set of output
+   goes to a file in logs/system.log
+
 
 3) Testing GET
 
@@ -70,11 +76,15 @@ until the user force quits.
    Navigate to the following URL: tinyserver.colab.duke.edu/sldkgjs.html
    You should get a 404 Bad Request response.
 
-   Navigate to the following URL: tinyserver.colab.duke.edu/public_access/basic.html
+   Navigate to the following URL: tinyserver.colab.duke.edu/public_access/index.html
    You should get a basic web page response
    
    Navigate to the following URL: tinyserver.colab.duke.edu/private/private.html
    You should get a 403 Forbidden response
+
+   Our server maintains a list of folders that are open to the public for various
+   activities. There is a list of folders that users can GET/HEAD from, and a 
+   separate list that users can PUT to and DELETE from. 
    
 4) Testing HEAD
    
