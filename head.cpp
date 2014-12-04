@@ -9,11 +9,6 @@
 #include "common.h"
 #include "get.h"
 
-
-//What to do if request is for a directory rather than a file?
-//Are we actually doing compression now?
-
-
 bool beenModified(Request* req){
   if(req->headers.count("If-Modified-Since")){
     struct tm reqTime;
@@ -84,27 +79,27 @@ int headResponse(Request* req, ConnObj* conn_state){
 
   else{
     if(beenModified(req)){
-    std::string header;
-    time_t ping;
-    struct tm* currentTime;
-    char timeBuffer[80];
-    time(&ping);
-    currentTime = localtime(&ping);
-    strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
-    std::string dateTime = (timeBuffer);
+      std::string header;
+      time_t ping;
+      struct tm* currentTime;
+      char timeBuffer[80];
+      time(&ping);
+      currentTime = localtime(&ping);
+      strftime(timeBuffer,80,"%a, %d %h %G %T %z",currentTime);
+      std::string dateTime = (timeBuffer);
     
-    header+= "HTTP/1.1 202 ACCEPT\r\n";
-    header+= "Date: "+ dateTime +"\r\n";
-    header+= "Server: tinyserver.colab.duke.edu\r\n";
-    if(allowsCompression(req)){  // COMPRESSION IS REQUESTED
-      header+= "Content-Encoding: gzip\r\n";
-    }
-    header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
-    send(conn_state->response_socket,header.c_str(),header.length(),0);  
-    return 1;
-    } 
-      send304(conn_state);
+      header+= "HTTP/1.1 202 ACCEPT\r\n";
+      header+= "Date: "+ dateTime +"\r\n";
+      header+= "Server: tinyserver.colab.duke.edu\r\n";
+      if(allowsCompression(req)){  // COMPRESSION IS REQUESTED
+	header+= "Content-Encoding: gzip\r\n";
+      }
+      header+= "Content-Type: " + getContentType(rel_path)+ "\r\n\r\n";
+      send(conn_state->response_socket,header.c_str(),header.length(),0);  
       return 1;
+    } 
+    send304(conn_state);
+    return 1;
     
   }
   
