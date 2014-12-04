@@ -10,7 +10,6 @@
 #include "common.h"
 #include "head.h"
 
-
 //Checks to see if client allows compression
 bool allowsCompression(Request* req){
   if((req->headers).count("accept-encoding") == 1){

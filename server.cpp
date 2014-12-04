@@ -22,59 +22,53 @@
 
 int mode;
 
-//This method sets up and binds socket to port 8000
+//This method sets up and binds socket to port 8080
 void socket_setup(int& server_socket){
   int status;
-  struct addrinfo host_info;    //These structs are populated by getaddrinfo function
+  struct addrinfo host_info;
   struct addrinfo* host_info_list;
-  memset(&host_info, 0 , sizeof(host_info)); //Initalizing to 0
+  memset(&host_info, 0 , sizeof(host_info));
   host_info.ai_family = AF_INET;
   host_info.ai_socktype = SOCK_STREAM;
   host_info.ai_flags = AI_PASSIVE;
-  status = getaddrinfo(NULL, "8080", &host_info, &host_info_list); //Populating the structs
+  status = getaddrinfo(NULL, "8080", &host_info, &host_info_list);
   if(status < 0){
     if (mode == DEBUG){
       log("Error Getting Host Info");
     }
     exit(EXIT_FAILURE);
   }
-   
-  server_socket = socket (AF_INET, SOCK_STREAM, 0); //Create TCP socket
+  //Create TCP socket
+  server_socket = socket (AF_INET, SOCK_STREAM, 0);
   if (server_socket < 0){
     if (mode == DEBUG){
       log("Error Creating Socket");
     }
     exit(EXIT_FAILURE);
   }
-
   int yes = 1;
   setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-
-  if (bind(server_socket, host_info_list->ai_addr, host_info_list->ai_addrlen) < 0){ //Bind socket
+  if (bind(server_socket, host_info_list->ai_addr, host_info_list->ai_addrlen) < 0){
     if (mode == DEBUG){
       log("Binding Socket to Port Failed");
     }
     exit(EXIT_FAILURE);
   }
-
-  if(listen(server_socket, 5)< 0){ //Queue socket to start listening
+  //start listening
+  if(listen(server_socket, 5)< 0){
     if (mode == DEBUG){
       log("Listening to Socket Failed");
     }
     exit(EXIT_FAILURE);
   }
-
-  freeaddrinfo(host_info_list); //Free the struct used earlier
+  freeaddrinfo(host_info_list);
 }
 
 void get_connections(int& server_socket, ConnObj* conn_state){
-  struct sockaddr_in client_addr; //this struct used by accept method
+  struct sockaddr_in client_addr;
   socklen_t client_addr_size;
   client_addr_size = sizeof(client_addr); 
-  
-  
-  conn_state->response_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_size); //This is a blocking method that waits for a connection to proceed
-  
+  conn_state->response_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_addr_size);
   if(mode == DEBUG){log("Connection Received\n");}
   if(conn_state->response_socket < 0){
     if (mode == DEBUG){
@@ -92,56 +86,53 @@ Request* parse(ConnObj* conn_state){
   char* request_URI = NULL;
   char* http_version = NULL;
   char * ptr = NULL;
-  
-  if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){ //Get the request_method
+  //Get the request_method
+  if(getdelim(&request_method, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_method, ' ');
     *ptr = '\0';
   }
-  
-  if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){ //Get the URI
+  //Get the URI
+  if(getdelim(&request_URI, &sz, ' ', msg_stream) > 0){
     ptr = strchr(request_URI, ' ');
     *ptr = '\0';
   }
-  
-  if(getdelim(&http_version, &sz, '\n', msg_stream) > 0){ //Get the HTTP version
+  //Get the HTTP version
+  if(getdelim(&http_version, &sz, '\n', msg_stream) > 0){
     ptr = strchr(http_version, '\n');
     *ptr = '\0';
   }
-
   log(std::string("\nMessage Received: ") + request_method + std::string(" ")+ request_URI + std::string(" ")+ http_version);
-
-  Request* req = new Request(request_method, request_URI, http_version); //Create a new request object based on this information
+  //Create a new request object based on this information
+  Request* req = new Request(request_method, request_URI, http_version);
   char* lineptr = NULL;
   char * cr = NULL;
   char* lf = NULL;
   char* test = NULL;
-  while (getline(&lineptr, &sz, msg_stream) > 0){ //Get all the optional headers present
-    
+  //Get all the optional headers present
+  while (getline(&lineptr, &sz, msg_stream) > 0){
     if (mode == DEBUG){
       log(std::string(lineptr));
     }
-   
-    if(lineptr[0]=='\r' && lineptr[1]=='\n'){ // line with only CRLF indicates end of header fields
+    // line with only CRLF indicates end of header fields
+    if(lineptr[0]=='\r' && lineptr[1]=='\n'){
       break;
     }
-    
-    lf = strchr(lineptr, '\n'); //Removing carriage return/new lines in header fields
+    //Removing carriage return/new lines in header fields
+    lf = strchr(lineptr, '\n');
     if(lf != NULL){
       *lf = '\0';
     }
-
     cr = strchr(lineptr, '\r');
     if(cr != NULL){
       *cr = '\0';
     }
-
     ptr = strchr(lineptr, ':');
     *ptr = '\0';
     ptr = ptr + 2;
     req->addHeader(lineptr, ptr); 
   }
-
-  free(request_method); //Free malloc'd memory
+  //Free malloc'd memory
+  free(request_method);
   free(request_URI);
   free(http_version);
   free(lineptr);  
@@ -150,60 +141,48 @@ Request* parse(ConnObj* conn_state){
 
 int callFunc(std::string request_method, Request * req, ConnObj* conn_state){
   int success;
-
   //Depending on what request type is, call appropriate function to handle it
-
-  // TODO: convert this to a switch statement
   if(request_method =="GET"){  
     getResponse(req, conn_state);
     success = 1; 
   }
-  
   else if(request_method == "POST"){
     postResponse(req, conn_state);
     success = 1; 
   }
-
   else if(request_method == "PUT"){
     putResponse(req, conn_state);
     success = 1; 
   }
-
   else if(request_method == "HEAD"){
     headResponse(req, conn_state);
     success = 1; 
   }
-
   else if(request_method == "OPTIONS"){
     optionsResponse(req, conn_state);
     success = 1;
   }
-
   else if(request_method == "DELETE"){
     deleteResponse(req, conn_state);
     success = 1; 
   }
-
   //Not supporting these two methods, send 501
   else if(request_method == "TRACE"){
     log("Request Not Fulfilled, Response Sent (Method not Implemented)");
     send501(conn_state);
     success = 1;
   }
-
   //Not supporting these two methods, send 501
   else if(request_method == "CONNECT"){
     log("Request Not Fulfilled, Response Sent (Method not Implemented)");
     send501(conn_state);
     success = 1; 
   }
- 
   else{
     success = 0; 
   }
   return success;
 }
-
 
 void* handle(void* conn_state_void){
   //This function is what handles individual connections as they are received
@@ -214,10 +193,8 @@ void* handle(void* conn_state_void){
   double chillax = 500000; //Watiting 0.5 seconds, 500,000 microseconds
   hang_out_time.tv_sec = 0;
   hang_out_time.tv_usec = chillax;
-
   double i = 0; 
   int available = 0;
-
   while(i < 1){
     // determine if there is something to be read in the socket
     fd_set set;
