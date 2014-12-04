@@ -9,6 +9,8 @@
 #include <sys/socket.h>
 #include "connection.h"
 
+extern int mode;
+
 void send100(ConnObj* conn_state){
   std::string header;
   header += "HTTP/1.1 100 Continue\r\n";
@@ -110,6 +112,12 @@ void send500(ConnObj* conn_state){
 /****************
 * Helper methods
 *****************/
+
+void log(std::string message) {
+  if (!mode){
+    std::cout<<"mode is 0\n";
+  }
+}
 
 // sends the specified error file
 void sendHTML(ConnObj* conn_state, std::string status){
