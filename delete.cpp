@@ -9,12 +9,11 @@
 #include "common.h"
 
 void deleteResponse(Request* req, ConnObj* conn_state){
-  std::string requestObject = req->request_URI;
-  requestObject.erase(0,1);
+  std::string requestObject = "www" + req->request_URI;
   // Check to see if the directory has user permissions
   int allowed = conn_state->authorized(req->request_method, req->request_URI);
   if(!allowed){
-    send401(conn_state);
+    send403(conn_state);
   }
   else{
     if(remove(requestObject.c_str()) == 0){

@@ -20,7 +20,7 @@ bool beenModified(Request* req){
     struct stat fileStat;
     stat(req->request_URI.c_str(),&fileStat);
     int time = difftime(fileStat.st_mtime, mktime(&reqTime));
-    if(time >= 0){
+    if(time <= 0){
       return false;
     }
     else {
