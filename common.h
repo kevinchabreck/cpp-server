@@ -8,6 +8,7 @@
 
 // status codes
 void send100(ConnObj* conn_state);
+void send200(ConnObj* conn_state);
 void send201(ConnObj* conn_state);
 void send204(ConnObj* conn_state);
 void send304(ConnObj* conn_state);
