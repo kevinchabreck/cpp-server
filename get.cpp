@@ -43,14 +43,12 @@ void  sendBody(Request* req, ConnObj* conn_state){
       
       if(!output){
 	if(mode == DEBUG){
-	  log("Could not open/create compressed file");
+	  // log("Could not open/create compressed file");
 	}
 	send500(conn_state);
 	compressFailed = true;
-	return;
       }
       else{
-	std::cout<<"Made it this far\n";
 	while((numBytes = fread(html,1,sizeof(html),fileName)) > 0){
 	  gzwrite(output, html,numBytes);
 	}
@@ -58,31 +56,27 @@ void  sendBody(Request* req, ConnObj* conn_state){
 	gzclose(output);
 	fclose(fileName);
 	FILE* fileName = fopen("compressed_file","r");
-	std::cout<<"Stil alive\n";
+     
 	if(!fileName){
 	  if(mode == DEBUG){
-	    log("Could not open/create compressed file");
+	    // log("Could not open/create compressed file");
 	  }
 	  compressFailed = true;
 	  send500(conn_state);
-	  return;
 	}
 	else{
 	  compressFailed = false;
 	}
       }
     }
-    std::cout<<"not dead yet\n";
+   
     if(compressFailed == false){
       while((numBytes = fread(html,1,8000,fileName)) > 0){
-	
 	send(conn_state->response_socket,html,numBytes,0);
       }
-      std::cout<<"still there!\n";
-      // fclose(fileName);
-      std::cout<<"lsakjflksajf]n\n";
-      remove("compressed_file");
-     
+      fclose(fileName);
+      if(remove("compressed_file") != 0){
+      }
     }
     else{
       send500(conn_state);

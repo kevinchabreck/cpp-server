@@ -11,7 +11,7 @@
 #include "connection.h"
 
 extern int mode;
-
+extern pthread_mutex_t log_mutex;
 void send100(ConnObj* conn_state){
   std::string header;
   header += "HTTP/1.1 100 Continue\r\n";
@@ -150,13 +150,18 @@ void send501(ConnObj* conn_state){
 *****************/
 
 void log(std::string message) {
-  if(mode == STANDARD){
-    std::ofstream out;
-    out.open("logs/server.log", std::ios::app);
-    out<<"<"<<getTimestamp()<<"> "<<message<<"\n";
+     if(mode == STANDARD){
+     pthread_mutex_lock(&log_mutex);
+     std::ofstream out;
+     FILE* logfile = fopen("logs/server.log", "a");
+     if (logfile != NULL){
+       fputs(message.c_str(), logfile);
+     fclose(logfile);
+     }
+     pthread_mutex_unlock(&log_mutex);
   }
-  else if(mode == DEBUG){
-    std::cout<<message<<"\n";
+   else if(mode == DEBUG){
+     std::cout<<message<<"\n";
   }
 }
 

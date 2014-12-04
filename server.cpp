@@ -20,7 +20,10 @@
 #include "post.h"
 #include "common.h"
 
+
 int mode;
+pthread_mutex_t compression_mutex;
+pthread_mutex_t log_mutex;
 
 //This method sets up and binds socket to port 8080
 void socket_setup(int& server_socket){
