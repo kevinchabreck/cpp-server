@@ -4,7 +4,6 @@
 #include <sys/types.h>
 #include "connection.h"
 
-bool beenModified(Request* req);
 bool allowsCompression(Request* req);
 void  getResponse(Request* req, ConnObj* conn_state);
 

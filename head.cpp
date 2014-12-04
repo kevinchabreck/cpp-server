@@ -13,6 +13,31 @@
 //What to do if request is for a directory rather than a file?
 //Are we actually doing compression now?
 
+
+bool beenModified(Request* req){
+  if(req->headers.count("If-Modified-Since")){
+    struct tm reqTime;
+    
+    std::string requestTime = (req->headers["If-Modified-Since"]);
+    if(strptime(requestTime.c_str(),"%a, %d %b %Y %H:%M:%S GMT", &reqTime) == NULL){
+      return true; //could not convert time
+    }
+    //Get last modified info from file
+    struct stat fileStat;
+    stat(req->request_URI.c_str(),&fileStat);
+    
+    int time = difftime(fileStat.st_mtime, mktime(&reqTime));
+    if(time <= 0){
+      return false;
+    }
+    else {
+      return true;
+    }
+  }
+  return true;
+}
+
+
 std::string get_relpath(std::string URI){
   char* absolute_path = NULL;
   std::string path = "www" + URI;
